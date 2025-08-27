@@ -27,7 +27,7 @@ class_name DropShadowCaster2D
 ## Tries to remove unnecessary points in straight lines, keeping only the first and last
 @export var points_simplification := true
 ## Tolerance threshold for detecting whether a point lies on a straight line. While changing this value usually results in minimal visual differences, it still affects the accuracy of the simplification process
-@export var threshold := 0.1
+@export_range(0.001,1.0,0.001) var threshold := 0.002
 @export_group('Debug')
 ## Toggles drawing of sample points from each shadow ray
 @export var show_sample_points : bool:
@@ -265,9 +265,7 @@ func _draw() -> void:
 	if points.size() < 2:
 		return
 
-	if show_sample_points:
-		for p in points:
-			draw_circle(p,1,Color.ALICE_BLUE)
+	
 
 	old_points = points
 	old_points.reverse()
@@ -315,34 +313,14 @@ func _draw() -> void:
 	if !is_on_screen and !Engine.is_editor_hint():
 		return
 	for polygon_index in polygons.size():
+		
+		if polygons[polygon_index].size() < 3 or uvs[polygon_index].size() != polygons[polygon_index].size():
+			continue
+		RenderingServer.canvas_item_add_triangle_array(get_canvas_item(),triangulate_polygon(polygons[polygon_index]),polygons[polygon_index],[],uvs[polygon_index],[],[],texture.get_rid())
+
 		if show_polygon_points:
 			for point_index : float in polygons[polygon_index].size():
 				draw_circle(polygons[polygon_index][point_index],2,Color(uvs[polygon_index][point_index].x,uvs[polygon_index][point_index].y,0))
-		if polygons[polygon_index].size() < 3 or uvs[polygon_index].size() != polygons[polygon_index].size():
-			continue
-		print(is_concave(polygons[polygon_index]))
-			
-		RenderingServer.canvas_item_add_triangle_array(get_canvas_item(),triangulate_polygon(polygons[polygon_index]),polygons[polygon_index],[],uvs[polygon_index],[],[],texture.get_rid())
-func is_concave(points : PackedVector2Array):
-	var all := 0.0
-	for i in points.size():
-		var angle := 0.0
-		var v1 : Vector2
-		var v2 : Vector2
-		if i == 0:
-			v1 = points[-1]-points[i]
-			v2 = points[1]-points[i]
-		elif i == points.size()-1:
-			v1 = points[i-1]-points[i]
-			v2 = points[0]-points[i]
-		else:
-			v1 = points[i-1]-points[i]
-			v2 = points[i+1]-points[i]
-		angle = rad_to_deg(v2.angle_to(v1))
-		
-		if v2.cross(v1) < 0:
-			angle = 360 - angle
-		
-		all += angle
-	all /= points.size()
-	return all > 180
+	if show_sample_points:
+		for p in points:
+			draw_circle(p,1,Color.BLACK)
