@@ -46,8 +46,9 @@ func _process(delta: float) -> void:
 	points = []
 	create_points()
 	
-	if animation.has_animation(current_animation):
-		queue_redraw()
+	if animation != null:
+		if animation.has_animation(current_animation):
+			queue_redraw()
 		
 func _draw() -> void:
 	if Engine.is_editor_hint():
