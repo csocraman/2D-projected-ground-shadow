@@ -31,17 +31,18 @@ func get_current_frame() -> AtlasTexture:
 	var frame = animation.get_frame_texture(current_animation,current_frame)
 	return frame
 func _process(delta: float) -> void:
-	if playing and animation.has_animation(current_animation):
-		time_acc += delta
+	if animation != null:
+		if playing and animation.has_animation(current_animation):
+			time_acc += delta
+			
+			current_frame += floor(time_acc/(get_animation_duration(current_animation)))
+			time_acc = fmod(time_acc,get_animation_duration(current_animation))
+			
+			if animation.get_animation_loop(current_animation):
+				current_frame %= animation.get_frame_count(current_animation)
+			else:
+				current_frame = min(current_frame,animation.get_frame_count(current_animation)-1)
 		
-		current_frame += floor(time_acc/(get_animation_duration(current_animation)))
-		time_acc = fmod(time_acc,get_animation_duration(current_animation))
-		
-		if animation.get_animation_loop(current_animation):
-			current_frame %= animation.get_frame_count(current_animation)
-		else:
-			current_frame = min(current_frame,animation.get_frame_count(current_animation)-1)
-	
 	points = []
 	create_points()
 	
