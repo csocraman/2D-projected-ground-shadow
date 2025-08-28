@@ -3,6 +3,8 @@ extends Node2D
 ##Generates a ground-projected shadow polygon based on collision points detected by several rays.
 class_name DropShadow2D
 
+signal points_created
+
 ## The size of the shadow
 @export var shadow_size := Vector2(64,64):
 	set(new):
@@ -236,7 +238,7 @@ func create_points():
 				var index = points.find(point)
 				if lines[line_index].find(point) != 0:
 					points.remove_at(index)
-
+	points_created.emit()
 func triangulate_polygon(polygon : PackedVector2Array):
 	var size = polygon.size()/2
 	
@@ -250,3 +252,10 @@ func triangulate_polygon(polygon : PackedVector2Array):
 		result.append(i+1)
 		result.append(size*2-2-i)
 	return result
+
+func get_points_distance():
+	var distance = PackedFloat32Array()
+	for point in points:
+		distance.append(position.distance_to(Vector2(position.x,point.y)) + offset.y)
+	return distance
+	

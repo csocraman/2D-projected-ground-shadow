@@ -21,7 +21,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if Engine.is_editor_hint():
 		draw_line(Vector2(-shadow_size.x/2,0),Vector2(shadow_size.x/2,0),Color.CRIMSON,10)
-	if points.size() < 2:
+	if points.size() < 2 or texture == null:
 		return
 
 	old_points = points

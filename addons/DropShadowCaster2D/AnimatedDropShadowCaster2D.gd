@@ -12,7 +12,7 @@ var uvs : Array[PackedVector2Array]
 var current_frame := 0
 var time_acc := 0.0
 
-var current_animation := "basic"
+@export var current_animation := "default"
 
 @export var playing := false
 
