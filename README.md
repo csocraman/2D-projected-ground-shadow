@@ -15,3 +15,7 @@ Generates a ground-projected shadow polygon based on collision points detected b
 
 ### ● Customizable level of detail
 ![Demostration2](https://i.imgur.com/45sw6wJ.gif)
+
+### ● Animated Shadows
+
+![Demostration2](https://i.imgur.com/rn5fw9q.gif)
