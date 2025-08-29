@@ -12,8 +12,8 @@ signal points_created
 		queue_redraw()
 ##Shadow rotation
 @export_range(-180,180,0.1,"radians_as_degrees") var shadow_rotation := 0.0
-##Shadow Offset
-@export var offset : Vector2
+##Shadow shadow_offset
+@export var shadow_offset : Vector2
 ##The distance at which the shadow diminishes to zero
 @export var shadow_max_distance := 1000
 @export_group('Sampling')
@@ -176,7 +176,19 @@ func create_points():
 			rayparams = PhysicsRayQueryParameters2D.create(from,to,collision_mask)
 		rayparams.hit_from_inside = false
 		var state = get_world_2d().direct_space_state
+		var points_param = PhysicsPointQueryParameters2D.new()
+		points_param.position = from
+		points_param.collision_mask = collision_mask
+		if get_parent() is CollisionObject2D:
+			points_param.exclude = [get_parent().get_rid()]
+		var res = state.intersect_point(points_param)
+		
 		var result = state.intersect_ray(rayparams)
+		if !res.is_empty():
+			if x_position < 0:
+				points.clear()
+			else:
+				break	
 		var height : float
 		if !result.is_empty():
 			height = Vector2(global_position.x,result.position.y).distance_to(global_position)
@@ -187,19 +199,19 @@ func create_points():
 			if !result.is_empty():
 				if points.is_empty() or distance_from_mask < (abs(x_position)):
 					if distance_from_mask-abs(x_position) > 0:
-						points.append((result.position - global_position)*scale-offset)
+						points.append((result.position - global_position)*sign(scale)-shadow_offset)
 					else:
 						var pos = result.position - global_position;
 						var last_pos = (abs(x_position)-shadow_size.x/steps)
 						var f = clamp(abs(distance_from_mask-abs(x_position))/abs((abs(x_position)-shadow_size.x*2/steps)-abs(x_position)),0,1)
-						points.append(mix(pos,Vector2(sign(x_position)*last_pos,pos.y),f)*scale-offset)
+						points.append(mix(pos,Vector2(sign(x_position)*last_pos,pos.y),f)*sign(scale)-shadow_offset)
 				else:
-					points.append((result.position - global_position)*scale-offset)
+					points.append((result.position - global_position)*sign(scale)-shadow_offset)
 			else:
 				if x-1 >= 0:
-					points.append(Vector2(x_position,max_distance)*scale-offset)
+					points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
 				else:
-					points.append(Vector2(x_position,max_distance)*scale-offset)
+					points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
 	var height_difference_map := []
 	for point_index in points.size():
 		var height_difference : float
@@ -256,6 +268,6 @@ func triangulate_polygon(polygon : PackedVector2Array):
 func get_points_distance():
 	var distance = PackedFloat32Array()
 	for point in points:
-		distance.append(position.distance_to(Vector2(position.x,point.y)) + offset.y)
+		distance.append(position.distance_to(Vector2(position.x,point.y)) + shadow_offset.y)
 	return distance
 	

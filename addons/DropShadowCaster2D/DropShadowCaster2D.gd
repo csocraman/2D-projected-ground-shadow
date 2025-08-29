@@ -61,12 +61,21 @@ func _draw() -> void:
 			uvs.append(leftover_shadowpolygon.uv.duplicate())
 	
 	var is_on_screen := false
+	var min_x = polygons[0][0].x + global_position.x
+	var max_x = polygons[0][polygons[0].size()/2-1].x + global_position.x
+	var min_y = polygons[0][0].y + global_position.y
+	var max_y = polygons[0][0].y + global_position.y
 	for polygon_index in polygons.size():
+		if polygons[polygon_index][0].x + global_position.x < min_x:
+			min_x = polygons[polygon_index][0].x + global_position.x
+		elif polygons[polygon_index][polygons[polygon_index].size()/2-1].x + global_position.x > max_x:
+			max_x = polygons[polygon_index][polygons[polygon_index].size()/2-1].x + global_position.x
 		for point in polygons[polygon_index]:
-			if Rect2(-get_viewport_transform().origin,get_viewport_transform().basis_xform(get_viewport_rect().size)).has_point(point + global_position):
-				is_on_screen = true
-				break
-
+			if point.y + global_position.y> max_y:
+				max_y = point.y + global_position.y
+			if point.y + global_position.y < min_y:
+				min_y = point.y + global_position.y
+	is_on_screen = Rect2(Vector2(min_x,min_y) + get_viewport_transform().get_origin(),Vector2(max_x-min_x,max_y-min_y)).intersects(get_viewport_rect())
 	if !is_on_screen and !Engine.is_editor_hint():
 		return
 	for polygon_index in polygons.size():
@@ -82,4 +91,4 @@ func _draw() -> void:
 				draw_circle(polygons[polygon_index][point_index],2,Color(uvs[polygon_index][point_index].x,uvs[polygon_index][point_index].y,0))
 	if show_sample_points:
 		for p in points:
-			draw_circle(p,1,Color.BLACK)
+			draw_circle(p,1,Color.WHITE)

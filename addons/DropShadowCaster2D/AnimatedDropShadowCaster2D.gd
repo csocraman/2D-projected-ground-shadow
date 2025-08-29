@@ -3,6 +3,7 @@
 extends DropShadow2D
 class_name AnimatedDropShadowCaster2D
 
+##SpriteFrame resource containing the animations of the shadow
 @export var animation : SpriteFrames
 var old_points := PackedVector2Array()
 
@@ -12,9 +13,9 @@ var uvs : Array[PackedVector2Array]
 var current_frame := 0
 var time_acc := 0.0
 
+##Current shadow animation
 @export var current_animation := "default"
-
-@export var playing := false
+var playing := false
 
 func get_animation_duration(animationname : String):
 	return animation.get_frame_duration(animationname,current_frame)/animation.get_animation_speed(animationname)
@@ -93,13 +94,24 @@ func _draw() -> void:
 			uvs.append(leftover_shadowpolygon.uv.duplicate())
 	
 	var is_on_screen := false
+	var min_x
+	var max_x
+	if scale.x >= 0:
+		min_x = polygons[0][0].x + global_position.x
+		max_x = polygons[polygons.size()-1][polygons[polygons.size()-1].size()/2-1].x + global_position.x
+	else:
+		max_x = polygons[0][0].x + global_position.x
+		min_x = polygons[polygons.size()-1][polygons[polygons.size()-1].size()/2-1].x + global_position.x
+	var min_y = polygons[0][0].y + global_position.y
+	var max_y = polygons[0][0].y + global_position.y
 	for polygon_index in polygons.size():
 		for point in polygons[polygon_index]:
-			if Rect2(-get_viewport_transform().origin,get_viewport_transform().basis_xform(get_viewport_rect().size)).has_point(point + global_position):
-				is_on_screen = true
-				break
-
-
+			if point.y + global_position.y > max_y:
+				max_y = point.y + global_position.y
+			if point.y + global_position.y < min_y:
+				min_y = point.y + global_position.y
+	var rect = Rect2(Vector2(min_x,min_y) + (get_viewport_transform().get_origin()),Vector2(max_x-min_x,max_y-min_y))
+	is_on_screen = rect.intersects(get_viewport_rect())
 	if !is_on_screen and !Engine.is_editor_hint():
 		return
 	
