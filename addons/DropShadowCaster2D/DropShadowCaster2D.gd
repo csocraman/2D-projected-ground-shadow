@@ -12,6 +12,7 @@ class_name DropShadowCaster2D
 
 var old_points := PackedVector2Array()
 
+
 func _process(delta: float) -> void:
 	points = []
 	create_points()

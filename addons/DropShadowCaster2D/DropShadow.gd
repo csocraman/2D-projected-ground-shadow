@@ -109,7 +109,7 @@ class ShadowPolygon:
 				if angle_to_last_point > deg_to_rad(70):
 					height_map.insert(index,height_map[index-1])
 					leftovers.append(top_point)
-					polygon.append(Vector2(top_point.x,last_point.y))
+					#polygon.append(Vector2(top_point.x,last_point.y))
 					leftover_creation_stage = true
 					StartLeftoverIndex = index
 					EndLeftoverIndex = index
@@ -127,10 +127,8 @@ class ShadowPolygon:
 		polygon_bottom.append_array(Bottom_polygon_points.slice(0,EndIndex+1))
 		if leftovers.size() > 0:
 			leftoversbottom[0].x = (polygon_bottom[polygon_bottom.size()-1].x + leftoversbottom[0].x)/2
-			leftovers[0].x = (leftovers[0].x + polygon[polygon.size()-2].x)/2
-		if !leftovers.is_empty():
-			polygon_bottom.append(Vector2(Bottom_polygon_points[EndIndex+1].x,Bottom_polygon_points[EndIndex].y))
-
+			leftovers[0].x = (leftovers[0].x + polygon[polygon.size()-1].x)/2
+	
 		polygon_bottom.reverse()
 		polygon.append_array(polygon_bottom)
 
@@ -139,24 +137,24 @@ class ShadowPolygon:
 		var shifted = Size_y * int(!shift)
 		if Top.size() > 0:
 			for i in polygon.size():
-				if i <= EndIndex + int(!leftovers.is_empty()):
+				if i <= EndIndex:
 					polygon[i].y += height_map[i]*(Size_y/shadow_max_distance)
 					polygon[i].y = min(Top[min(min(i,EndIndex),Top.size()-1)].y + shifted,polygon[i].y)
 				else:
-					polygon[i].y -= height_map[clamp((2*(EndIndex+int(!leftovers.is_empty())) - i + 1),0,height_map.size() - 1)]*(Size_y/shadow_max_distance)
-					polygon[i].y = max(Top[min(clamp((2*(EndIndex+int(!leftovers.is_empty())) - i ),0,height_map.size() - 1),Top.size()-1)].y + shifted,polygon[i].y)
+					polygon[i].y -= height_map[clamp((2*(EndIndex) - i + 1),0,height_map.size() - 1)]*(Size_y/shadow_max_distance)
+					polygon[i].y = max(Top[min(clamp((2*(EndIndex) - i ),0,height_map.size() - 1),Top.size()-1)].y + shifted,polygon[i].y)
 					
 				
 	func create_uv(Top,sizex,shadow_rotation):
 		if polygon.is_empty():
 			return
 
-		for p : float in range(0,EndIndex + 1 + int(!leftovers.is_empty()),1):
+		for p : float in range(0,EndIndex + 1,1):
 			var size_x = (shadow_max_distance - height_map[p])/shadow_max_distance*sizex
 			uv.append(Vector2((polygon[p].x+size_x/2)/ size_x,0.0))
 
-		for p : float in range(EndIndex+int(!leftovers.is_empty())+1,polygon.size(),1):
-			var size_x = (shadow_max_distance-height_map[(p-(EndIndex+int(!leftovers.is_empty())+1))])/shadow_max_distance*sizex
+		for p : float in range(EndIndex+1,polygon.size(),1):
+			var size_x = (shadow_max_distance-height_map[(p-(EndIndex++1))])/shadow_max_distance*sizex
 			uv.append(Vector2(((polygon[p].x)+size_x/2) / size_x,1.0))
 		
 func mix(a,b,v):
@@ -270,4 +268,3 @@ func get_points_distance():
 	for point in points:
 		distance.append(position.distance_to(Vector2(position.x,point.y)) + shadow_offset.y)
 	return distance
-	
