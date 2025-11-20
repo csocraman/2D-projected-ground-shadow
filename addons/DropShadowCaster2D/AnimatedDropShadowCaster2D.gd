@@ -94,24 +94,14 @@ func _draw() -> void:
 			uvs.append(leftover_shadowpolygon.uv.duplicate())
 	
 	var is_on_screen := false
-	var min_x
-	var max_x
-	if scale.x >= 0:
-		min_x = polygons[0][0].x + global_position.x
-		max_x = polygons[polygons.size()-1][polygons[polygons.size()-1].size()/2-1].x + global_position.x
-	else:
-		max_x = polygons[0][0].x + global_position.x
-		min_x = polygons[polygons.size()-1][polygons[polygons.size()-1].size()/2-1].x + global_position.x
-	var min_y = polygons[0][0].y + global_position.y
-	var max_y = polygons[0][0].y + global_position.y
+	var viewport_rect = get_viewport_rect()
+	viewport_rect.position -= get_viewport_transform().origin/get_viewport_transform().get_scale()
+	viewport_rect.size /= get_viewport_transform().get_scale()
 	for polygon_index in polygons.size():
 		for point in polygons[polygon_index]:
-			if point.y + global_position.y > max_y:
-				max_y = point.y + global_position.y
-			if point.y + global_position.y < min_y:
-				min_y = point.y + global_position.y
-	var rect = Rect2(Vector2(min_x,min_y) + (get_viewport_transform().get_origin()),Vector2(max_x-min_x,max_y-min_y))
-	is_on_screen = rect.intersects(get_viewport_rect())
+			if viewport_rect.has_point(point + global_position):
+				is_on_screen = true
+				break
 	if !is_on_screen and !Engine.is_editor_hint():
 		return
 	
