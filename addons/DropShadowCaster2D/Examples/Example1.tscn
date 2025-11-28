@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=4 uid="uid://big8gwpo1rkvy"]
+[gd_scene load_steps=40 format=4 uid="uid://big8gwpo1rkvy"]
 
 [ext_resource type="Texture2D" uid="uid://c05el4j1krjdq" path="res://addons/2D-projected-ground-shadow/addons/DropShadowCaster2D/Examples/tilemap.png" id="1_cfprt"]
 [ext_resource type="Texture2D" uid="uid://4g37bhgyypvf" path="res://addons/2D-projected-ground-shadow/addons/DropShadowCaster2D/Examples/knight.png" id="2_bcdjy"]
@@ -365,9 +365,6 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bcdjy"]
 size = Vector2(20, 32)
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_seabo"]
-radius = 24.186773
-
 [node name="Example1" type="Node2D"]
 texture_filter = 1
 
@@ -416,10 +413,3 @@ shape = SubResource("RectangleShape2D_bcdjy")
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(4, 4)
-
-[node name="StaticBody2D" type="StaticBody2D" parent="."]
-position = Vector2(4, 52)
-collision_layer = 2
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D"]
-shape = SubResource("CircleShape2D_seabo")
