@@ -67,7 +67,6 @@ class ShadowPolygon:
 		polygon.clear()
 		leftovers.clear()
 		leftoversbottom.clear()
-
 		for point in Top_polygon_points:
 			if shift:
 				height_map.append(Vector2(position.x,point.y + position.y).distance_to(position))
@@ -78,14 +77,20 @@ class ShadowPolygon:
 				Top_polygon_points[x] -= Vector2(0,Size_y)
 			for x in Bottom_polygon_points.size():
 				Bottom_polygon_points[x] += Vector2(0,Size_y)
-		
 		var polygon_bottom : PackedVector2Array
-
+	
 		var last_point : Vector2
 		var leftover_creation_stage := false
 		EndIndex = 0
 		var EndLeftoverIndex : int
 		var StartLeftoverIndex : int
+		var all_points : PackedVector2Array
+		all_points.clear()
+		all_points.append_array(Top_polygon_points)
+	
+		var Bottom_polygon_points_reversed = Bottom_polygon_points.duplicate()
+		Bottom_polygon_points_reversed.reverse()
+		all_points.append_array(Bottom_polygon_points_reversed)
 		for index in Top_polygon_points.size():
 			var top_point = Top_polygon_points[index]
 			if !leftover_creation_stage:
@@ -95,13 +100,7 @@ class ShadowPolygon:
 					EndIndex = index
 					continue
 	
-				var all_points : PackedVector2Array
-				all_points.clear()
-				all_points.append_array(Top_polygon_points)
-	
-				var Bottom_polygon_points_reversed = Bottom_polygon_points.duplicate()
-				Bottom_polygon_points_reversed.reverse()
-				all_points.append_array(Bottom_polygon_points_reversed)
+				
 
 				var dir = top_point.direction_to(last_point)
 				var angle_to_last_point = abs(atan2(dir.y,abs(dir.x)))
@@ -163,6 +162,7 @@ func mix(a,b,v):
 func create_points():
 	if collision_mask == null or collision_mask == 0:
 		return
+	var state = get_world_2d().direct_space_state
 	for x in steps:
 		var x_position := (shadow_size.x)/float(steps - 1)*x-(shadow_size.x)/2.0
 		var rayparams = PhysicsRayQueryParameters2D.new()
@@ -173,20 +173,21 @@ func create_points():
 		else:
 			rayparams = PhysicsRayQueryParameters2D.create(from,to,collision_mask)
 		rayparams.hit_from_inside = false
-		var state = get_world_2d().direct_space_state
 		var points_param = PhysicsPointQueryParameters2D.new()
 		points_param.position = from
 		points_param.collision_mask = collision_mask
 		if get_parent() is CollisionObject2D:
 			points_param.exclude = [get_parent().get_rid()]
-		var res = state.intersect_point(points_param)
 		
-		var result = state.intersect_ray(rayparams)
+		var res = state.intersect_point(points_param)
 		if !res.is_empty():
 			if x_position < 0:
 				points.clear()
 			else:
 				break	
+		
+		var result = state.intersect_ray(rayparams)
+		
 		var height : float
 		if !result.is_empty():
 			height = Vector2(global_position.x,result.position.y).distance_to(global_position)
@@ -206,54 +207,49 @@ func create_points():
 				else:
 					points.append((result.position - global_position)*sign(scale)-shadow_offset)
 			else:
-				if x-1 >= 0:
-					points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
-				else:
-					points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
-	var height_difference_map := []
-	for point_index in points.size():
-		var height_difference : float
-		if point_index > 0 and point_index < points.size()-1:
-			height_difference = (points[point_index].y - points[point_index-1].y) + (points[point_index].y - points[point_index+1].y)
-
-		if point_index == 1:
-			height_difference_map[0] = height_difference
-
-		height_difference_map.append(height_difference)
-
-		if point_index == points.size()-1:
-			height_difference_map[point_index] = height_difference_map[point_index-1]
-	
-	var lines : Dictionary[Vector2,Array]
-	
+				points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
 	if points_simplification:
+		var height_difference_map := []
+		for point_index in points.size():
+			var height_difference : float
+			if point_index > 0 and point_index < points.size()-1:
+				height_difference = (points[point_index].y - points[point_index-1].y) + (points[point_index].y - points[point_index+1].y)
+
+			if point_index == 1:
+				height_difference_map[0] = height_difference
+
+			height_difference_map.append(height_difference)
+
+			if point_index == points.size()-1:
+				height_difference_map[point_index] = height_difference_map[point_index-1]
+		
+		var lines : Dictionary[int,PackedInt32Array] = {0: [0]}
+		var v : int = 0
 		for i in height_difference_map.size():
 			if i > 0:
 				if abs(height_difference_map[i] - height_difference_map[i-1]) < threshold / steps:
-					var found := false
-					for k in lines:
-						if lines[k].has(points[i]):
-							lines[k].append(points[i])
-							found = true
-							break
-
-					if !found:
-						if i > 1:
-							lines[points[i]] = [points[i],points[i-1]]
-						else:
-							lines[points[i]] = [points[i]]
-
+					if !lines.has(v):
+						lines[v] = PackedInt32Array()
+					lines[v].append(i)
+				else:
+					v = i
+					if !lines.has(v):
+						lines[v] = PackedInt32Array()
+					lines[v].append(i)
+		var offset = 0
+		
 		for line_index in lines:
 			for point in lines[line_index]:
-				var index = points.find(point)
-				if lines[line_index].find(point) != 0:
-					points.remove_at(index)
+				if lines[line_index][0] != point and lines[line_index][lines[line_index].size()-1] != point:
+					points.remove_at(point-offset)
+					offset += 1
+	
+		
 	points_created.emit()
 func triangulate_polygon(polygon : PackedVector2Array):
 	var size = polygon.size()/2
 	
 	var result = PackedInt32Array()
-	
 	for i in size-1:
 		result.append(i)
 		result.append(size*2-1-i)

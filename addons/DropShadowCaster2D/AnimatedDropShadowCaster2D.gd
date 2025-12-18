@@ -43,7 +43,8 @@ func _process(delta: float) -> void:
 				current_frame %= animation.get_frame_count(current_animation)
 			else:
 				current_frame = min(current_frame,animation.get_frame_count(current_animation)-1)
-		
+	if !visible:
+		return
 	points = []
 	create_points()
 	
@@ -104,7 +105,7 @@ func _draw() -> void:
 				break
 	if !is_on_screen and !Engine.is_editor_hint():
 		return
-	
+		
 	for polygon_index in polygons.size():
 		for p in uvs[polygon_index].size():
 			uvs[polygon_index][p] -= Vector2.ONE/2
@@ -112,7 +113,6 @@ func _draw() -> void:
 			uvs[polygon_index][p] += Vector2.ONE/2
 			uvs[polygon_index][p] /= get_current_frame().atlas.get_size() / get_current_frame().region.size
 			uvs[polygon_index][p] += get_current_frame().region.position / get_current_frame().atlas.get_size()
-			
 			
 		if polygons[polygon_index].size() < 3 or uvs[polygon_index].size() != polygons[polygon_index].size():
 			continue

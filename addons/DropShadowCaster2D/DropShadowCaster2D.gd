@@ -14,6 +14,8 @@ var old_points := PackedVector2Array()
 
 
 func _process(delta: float) -> void:
+	if not visible:
+		return
 	points = []
 	create_points()
 	if old_points != points:
@@ -33,7 +35,7 @@ func _draw() -> void:
 	
 	var bottom_points := points
 	bottom_points.reverse()
-
+	
 	polygon_shadow.size_x = shadow_size.x
 	polygon_shadow.create_polygon(points,bottom_points,shadow_size.y/2,true)
 
@@ -62,21 +64,14 @@ func _draw() -> void:
 			uvs.append(leftover_shadowpolygon.uv.duplicate())
 	
 	var is_on_screen := false
-	var min_x = polygons[0][0].x + global_position.x
-	var max_x = polygons[0][polygons[0].size()/2-1].x + global_position.x
-	var min_y = polygons[0][0].y + global_position.y
-	var max_y = polygons[0][0].y + global_position.y
+	var viewport_rect = get_viewport_rect()
+	viewport_rect.position -= get_viewport_transform().origin/get_viewport_transform().get_scale()
+	viewport_rect.size /= get_viewport_transform().get_scale()
 	for polygon_index in polygons.size():
-		if polygons[polygon_index][0].x + global_position.x < min_x:
-			min_x = polygons[polygon_index][0].x + global_position.x
-		elif polygons[polygon_index][polygons[polygon_index].size()/2-1].x + global_position.x > max_x:
-			max_x = polygons[polygon_index][polygons[polygon_index].size()/2-1].x + global_position.x
 		for point in polygons[polygon_index]:
-			if point.y + global_position.y> max_y:
-				max_y = point.y + global_position.y
-			if point.y + global_position.y < min_y:
-				min_y = point.y + global_position.y
-	is_on_screen = Rect2(Vector2(min_x,min_y) + get_viewport_transform().get_origin(),Vector2(max_x-min_x,max_y-min_y)).intersects(get_viewport_rect())
+			if viewport_rect.has_point(point + global_position):
+				is_on_screen = true
+				break
 	if !is_on_screen and !Engine.is_editor_hint():
 		return
 	for polygon_index in polygons.size():

@@ -373,12 +373,11 @@ tile_map_data = PackedByteArray("AAACAAMAAQACAAIAAAACAAIAAQACAAEAAAACAAEAAQACAAA
 tile_set = SubResource("TileSet_ueetm")
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="."]
-position = Vector2(5, -40)
+position = Vector2(85, -18)
 collision_mask = 2
 script = ExtResource("2_ueetm")
 
 [node name="DropShadowCaster2D" type="Node2D" parent="CharacterBody2D"]
-visible = false
 position = Vector2(0, 24)
 script = ExtResource("4_5ii4i")
 texture = SubResource("GradientTexture2D_seabo")
@@ -389,6 +388,7 @@ show_sample_points = true
 metadata/_custom_type_script = "uid://dv6ka6betcci3"
 
 [node name="AnimatedDropShadowCaster2D" type="Node2D" parent="CharacterBody2D"]
+visible = false
 modulate = Color(0, 0, 0, 0.705882)
 scale = Vector2(-1, 1)
 script = ExtResource("4_seabo")
