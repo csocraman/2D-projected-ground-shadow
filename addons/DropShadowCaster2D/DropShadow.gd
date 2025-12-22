@@ -162,22 +162,30 @@ func mix(a,b,v):
 func create_points():
 	if collision_mask == null or collision_mask == 0:
 		return
+	
 	var state = get_world_2d().direct_space_state
+	var points_param = PhysicsPointQueryParameters2D.new()
+	points_param.collision_mask = collision_mask
+	var rayparams = PhysicsRayQueryParameters2D.new()
+
+	if get_parent() is CollisionObject2D:
+		rayparams = PhysicsRayQueryParameters2D.create(Vector2.ZERO,Vector2.ZERO,collision_mask,[get_parent().get_rid()])
+	else:
+		rayparams = PhysicsRayQueryParameters2D.create(Vector2.ZERO,Vector2.ZERO,collision_mask)
+	if get_parent() is CollisionObject2D:
+		points_param.exclude = [get_parent().get_rid()]
 	for x in steps:
+		
 		var x_position := (shadow_size.x)/float(steps - 1)*x-(shadow_size.x)/2.0
-		var rayparams = PhysicsRayQueryParameters2D.new()
+		
 		var from = global_position + Vector2(x_position,0)
 		var to = global_position + Vector2(x_position,max_distance)
-		if get_parent() is CollisionObject2D:
-			rayparams = PhysicsRayQueryParameters2D.create(from,to,collision_mask,[get_parent().get_rid()])
-		else:
-			rayparams = PhysicsRayQueryParameters2D.create(from,to,collision_mask)
 		rayparams.hit_from_inside = false
-		var points_param = PhysicsPointQueryParameters2D.new()
+			
 		points_param.position = from
-		points_param.collision_mask = collision_mask
-		if get_parent() is CollisionObject2D:
-			points_param.exclude = [get_parent().get_rid()]
+		
+		rayparams.from = from
+		
 		
 		var res = state.intersect_point(points_param)
 		if !res.is_empty():
@@ -186,6 +194,8 @@ func create_points():
 			else:
 				break	
 		
+		rayparams.to = to
+
 		var result = state.intersect_ray(rayparams)
 		
 		var height : float
@@ -208,8 +218,9 @@ func create_points():
 					points.append((result.position - global_position)*sign(scale)-shadow_offset)
 			else:
 				points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
+
 	if points_simplification:
-		var height_difference_map := []
+		var height_difference_map : PackedFloat32Array= []
 		for point_index in points.size():
 			var height_difference : float
 			if point_index > 0 and point_index < points.size()-1:
@@ -230,22 +241,31 @@ func create_points():
 				if abs(height_difference_map[i] - height_difference_map[i-1]) < threshold / steps:
 					if !lines.has(v):
 						lines[v] = PackedInt32Array()
+					
+					if lines[v].size() > 1 and points.size() >= 1000:
+						lines[v].remove_at(1)
 					lines[v].append(i)
+					
 				else:
 					v = i
-					if !lines.has(v):
-						lines[v] = PackedInt32Array()
+					lines[v] = PackedInt32Array()
 					lines[v].append(i)
 		var offset = 0
 		
-		for line_index in lines:
-			for point in lines[line_index]:
-				if lines[line_index][0] != point and lines[line_index][lines[line_index].size()-1] != point:
-					points.remove_at(point-offset)
-					offset += 1
-	
-		
+		if points.size() < 1000:
+			for line_index in lines:
+				for point in lines[line_index]:
+					if lines[line_index][0] != point and lines[line_index][lines[line_index].size()-1] != point:
+						points.remove_at(point-offset)
+						offset += 1
+		else:
+			var npoints := PackedVector2Array()
+			for line_index in lines:
+				for point in lines[line_index]:
+					npoints.append( points[point])
+			points = npoints
 	points_created.emit()
+	
 func triangulate_polygon(polygon : PackedVector2Array):
 	var size = polygon.size()/2
 	
