@@ -138,10 +138,12 @@ class ShadowPolygon:
 			for i in polygon.size():
 				if i <= EndIndex:
 					polygon[i].y += height_map[i]*(Size_y/shadow_max_distance)
-					polygon[i].y = min(Top[min(min(i,EndIndex),Top.size()-1)].y + shifted,polygon[i].y)
+					#polygon[i].y = min(Top[min(min(i,EndIndex),Top.size()-1)].y + shifted,polygon[i].y)
 				else:
 					polygon[i].y -= height_map[clamp((2*(EndIndex) - i + 1),0,height_map.size() - 1)]*(Size_y/shadow_max_distance)
-					polygon[i].y = max(Top[min(clamp((2*(EndIndex) - i ),0,height_map.size() - 1),Top.size()-1)].y + shifted,polygon[i].y)
+					#polygon[i].y = max(Top[min(clamp((2*(EndIndex) - i ),0,height_map.size() - 1),Top.size()-1)].y + shifted,
+					#polygon[i].y)
+					pass
 					
 				
 	func create_uv(Top,sizex,shadow_rotation):
@@ -149,12 +151,12 @@ class ShadowPolygon:
 			return
 
 		for p : float in range(0,EndIndex + 1,1):
-			var size_x = (shadow_max_distance - height_map[p])/shadow_max_distance*sizex
-			uv.append(Vector2((polygon[p].x+size_x/2)/ size_x,0.0))
+			var estimated_width = (shadow_max_distance - height_map[p])/shadow_max_distance*sizex
+			uv.append(Vector2((polygon[p].x+estimated_width/2)/ estimated_width,0.0))
 
 		for p : float in range(EndIndex+1,polygon.size(),1):
-			var size_x = (shadow_max_distance-height_map[(p-(EndIndex++1))])/shadow_max_distance*sizex
-			uv.append(Vector2(((polygon[p].x)+size_x/2) / size_x,1.0))
+			var estimated_width = (shadow_max_distance-height_map[(p-(EndIndex++1))])/shadow_max_distance*sizex
+			uv.append(Vector2(((polygon[p].x)+estimated_width/2) / estimated_width,1.0))
 		
 func mix(a,b,v):
 	return b * v + a * (1.-v)
@@ -174,6 +176,7 @@ func create_points():
 		rayparams = PhysicsRayQueryParameters2D.create(Vector2.ZERO,Vector2.ZERO,collision_mask)
 	if get_parent() is CollisionObject2D:
 		points_param.exclude = [get_parent().get_rid()]
+	var dt = 0
 	for x in steps:
 		
 		var x_position := (shadow_size.x)/float(steps - 1)*x-(shadow_size.x)/2.0
@@ -195,9 +198,10 @@ func create_points():
 				break	
 		
 		rayparams.to = to
-
+		var t = Time.get_ticks_msec()
 		var result = state.intersect_ray(rayparams)
-		
+		dt += -t + Time.get_ticks_msec()
+			
 		var height : float
 		if !result.is_empty():
 			height = Vector2(global_position.x,result.position.y).distance_to(global_position)
@@ -218,7 +222,7 @@ func create_points():
 					points.append((result.position - global_position)*sign(scale)-shadow_offset)
 			else:
 				points.append(Vector2(x_position,max_distance)*sign(scale)-shadow_offset)
-
+	#print(dt/1000.0)
 	if points_simplification:
 		var height_difference_map : PackedFloat32Array= []
 		for point_index in points.size():
@@ -284,3 +288,37 @@ func get_points_distance():
 	for point in points:
 		distance.append(position.distance_to(Vector2(position.x,point.y)) + shadow_offset.y)
 	return distance
+
+func create_leftovers(polygon_shadow : ShadowPolygon, polygons : Array[PackedVector2Array],uvs : Array[PackedVector2Array]):
+	var leftover_shadowpolygon = ShadowPolygon.new(global_position)
+	
+	if !polygon_shadow.leftovers.is_empty():
+		leftover_shadowpolygon.size_x = polygon_shadow.size_x
+		leftover_shadowpolygon.StartIndex = polygon_shadow.EndIndex + polygon_shadow.StartIndex
+		leftover_shadowpolygon.shadow_max_distance = shadow_max_distance
+		leftover_shadowpolygon.create_polygon(polygon_shadow.leftovers,polygon_shadow.leftoversbottom,shadow_size.y/2,shadow_rotation,false)
+		
+		polygons.append(leftover_shadowpolygon.polygon.duplicate())
+		uvs.append(leftover_shadowpolygon.uv.duplicate())
+		
+		while !leftover_shadowpolygon.leftovers.is_empty():
+			leftover_shadowpolygon.StartIndex = leftover_shadowpolygon.EndIndex + leftover_shadowpolygon.StartIndex
+			leftover_shadowpolygon.shadow_max_distance = shadow_max_distance
+			leftover_shadowpolygon.create_polygon(leftover_shadowpolygon.leftovers,leftover_shadowpolygon.leftoversbottom,shadow_size.y/2,shadow_rotation,false)
+			
+			polygons.append(leftover_shadowpolygon.polygon.duplicate())
+			uvs.append(leftover_shadowpolygon.uv.duplicate())
+	
+func check_is_on_screen(polygons : Array[PackedVector2Array]):
+	var is_on_screen := false
+	var viewport_rect = get_viewport_rect()
+	viewport_rect.position -= get_viewport_transform().origin/get_viewport_transform().get_scale()
+	viewport_rect.size /= get_viewport_transform().get_scale()
+	for polygon_index in polygons.size():
+		for point in polygons[polygon_index]:
+			if viewport_rect.has_point(point + global_position):
+				is_on_screen = true
+				break
+	if !is_on_screen and !Engine.is_editor_hint():
+		return false
+	return true

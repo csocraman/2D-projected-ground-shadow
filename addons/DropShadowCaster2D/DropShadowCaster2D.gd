@@ -14,7 +14,7 @@ var old_points := PackedVector2Array()
 
 
 func _process(delta: float) -> void:
-	if not visible:
+	if !is_visible_in_tree():
 		return
 	points = []
 	create_points()
@@ -44,35 +44,9 @@ func _draw() -> void:
 	polygons.append(polygon_shadow.polygon)
 	uvs.append(polygon_shadow.uv)
 
-	var leftover_shadowpolygon = ShadowPolygon.new(global_position)
+	create_leftovers(polygon_shadow,polygons,uvs)
 	
-	if !polygon_shadow.leftovers.is_empty():
-		leftover_shadowpolygon.size_x = polygon_shadow.size_x
-		leftover_shadowpolygon.StartIndex = polygon_shadow.EndIndex + polygon_shadow.StartIndex
-		leftover_shadowpolygon.shadow_max_distance = shadow_max_distance
-		leftover_shadowpolygon.create_polygon(polygon_shadow.leftovers,polygon_shadow.leftoversbottom,shadow_size.y/2,shadow_rotation,false)
-		
-		polygons.append(leftover_shadowpolygon.polygon.duplicate())
-		uvs.append(leftover_shadowpolygon.uv.duplicate())
-		
-		while !leftover_shadowpolygon.leftovers.is_empty():
-			leftover_shadowpolygon.StartIndex = leftover_shadowpolygon.EndIndex + leftover_shadowpolygon.StartIndex
-			leftover_shadowpolygon.shadow_max_distance = shadow_max_distance
-			leftover_shadowpolygon.create_polygon(leftover_shadowpolygon.leftovers,leftover_shadowpolygon.leftoversbottom,shadow_size.y/2,shadow_rotation,false)
-			
-			polygons.append(leftover_shadowpolygon.polygon.duplicate())
-			uvs.append(leftover_shadowpolygon.uv.duplicate())
-	
-	var is_on_screen := false
-	var viewport_rect = get_viewport_rect()
-	viewport_rect.position -= get_viewport_transform().origin/get_viewport_transform().get_scale()
-	viewport_rect.size /= get_viewport_transform().get_scale()
-	for polygon_index in polygons.size():
-		for point in polygons[polygon_index]:
-			if viewport_rect.has_point(point + global_position):
-				is_on_screen = true
-				break
-	if !is_on_screen and !Engine.is_editor_hint():
+	if !check_is_on_screen(polygons):
 		return
 	for polygon_index in polygons.size():
 		for p in uvs[polygon_index].size():
