@@ -3,7 +3,6 @@
 extends DropShadow2D
 class_name DropShadowCaster2D
 
-
 ## The texture of the shadow
 @export var texture : Texture2D:
 	set(new):

@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=4 uid="uid://big8gwpo1rkvy"]
+[gd_scene format=4 uid="uid://big8gwpo1rkvy"]
 
 [ext_resource type="Texture2D" uid="uid://c05el4j1krjdq" path="res://addons/2D-projected-ground-shadow/addons/DropShadowCaster2D/Examples/tilemap.png" id="1_cfprt"]
 [ext_resource type="Texture2D" uid="uid://4g37bhgyypvf" path="res://addons/2D-projected-ground-shadow/addons/DropShadowCaster2D/Examples/knight.png" id="2_bcdjy"]
@@ -133,13 +133,15 @@ sources/1 = SubResource("TileSetAtlasSource_bcdjy")
 
 [sub_resource type="Gradient" id="Gradient_5ii4i"]
 interpolation_mode = 1
-colors = PackedColorArray(0, 0, 0, 0.580392, 1, 1, 1, 0)
+offsets = PackedFloat32Array(0, 0.1, 0.9)
+colors = PackedColorArray(0, 0, 0, 0, 0, 0, 0, 0.580392, 1, 1, 1, 0)
+metadata/_snap_enabled = true
 
 [sub_resource type="GradientTexture2D" id="GradientTexture2D_seabo"]
 gradient = SubResource("Gradient_5ii4i")
 width = 32
 height = 16
-fill_from = Vector2(0.5, 0.5)
+fill_from = Vector2(0.5, 1)
 fill_to = Vector2(0.5, 0)
 metadata/_snap_enabled = true
 
@@ -365,34 +367,33 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bcdjy"]
 size = Vector2(20, 32)
 
-[node name="Example1" type="Node2D"]
+[node name="Example1" type="Node2D" unique_id=63459522]
 texture_filter = 1
 
-[node name="TileMapLayer" type="TileMapLayer" parent="."]
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1416914141]
 tile_map_data = PackedByteArray("AAACAAMAAQACAAIAAAACAAIAAQACAAEAAAACAAEAAQACAAAAAAABAAMAAQABAAIAAAABAAIAAQABAAEAAAABAAEAAQABAAAAAAAAAAMAAQABAAEAAAAAAAIAAQABAAEAAAAAAAEAAQABAAAAAAD//wMAAQABAAEAAAD//wIAAQABAAEAAAD//wEAAQABAAAAAAD+/wMAAQABAAEAAAD+/wIAAQABAAEAAAD+/wEAAQABAAAAAAD9/wMAAQABAAEAAAD9/wIAAQABAAEAAAD9/wEAAQABAAAAAAD8/wMAAQAAAAIAAAD8/wIAAQAAAAEAAAD8/wEAAQAAAAAAAAAJAAUAAQACAAEAAAAJAAQAAQACAAAAAAAIAAUAAQABAAEAAAAIAAQAAQABAAEAAAAIAAMAAQACAAAAAAAHAAUAAQABAAEAAAAHAAQAAQABAAEAAAAHAAMAAQABAAAAAAAGAAUAAQABAAIAAAAGAAQAAQABAAEAAAAGAAMAAQABAAAAAAAFAAUAAQABAAEAAAAFAAQAAQABAAEAAAAFAAMAAQABAAAAAAAEAAUAAQABAAEAAAAEAAQAAQABAAEAAAAEAAMAAQABAAAAAAADAAUAAQAAAAIAAAADAAQAAQAAAAEAAAADAAMAAQAAAAAAAAAAAAQAAQACAAIAAAD//wQAAQABAAIAAAD+/wQAAQABAAIAAAD9/wQAAQAAAAIAAAAFAAYAAQACAAIAAAAEAAYAAQAAAAIAAAAJAAYAAQACAAEAAAAIAAYAAQABAAEAAAAHAAYAAQAAAAIAAAAIAAcAAQAAAAIAAAAJAAcAAQACAAIAAAA=")
 tile_set = SubResource("TileSet_ueetm")
 
-[node name="TileMapLayer2" type="TileMapLayer" parent="."]
+[node name="TileMapLayer2" type="TileMapLayer" parent="." unique_id=269450411]
 rotation = 0.7853982
 tile_map_data = PackedByteArray("AAD5/wEAAQAAAAAAAAD6/wEAAQABAAAAAAD7/wEAAQABAAAAAAD5/wIAAQAAAAIAAAD6/wIAAQABAAIAAAD7/wIAAQABAAEAAAD8/wIAAQABAAIAAAD9/wIAAQACAAIAAAD8/wEAAQABAAAAAAD9/wEAAQACAAAAAAD7/wMAAQADAAIAAAA=")
 tile_set = SubResource("TileSet_ueetm")
 
-[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
-position = Vector2(-111, -186)
+[node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=948293966]
+position = Vector2(-13, -20)
 collision_mask = 2
 script = ExtResource("2_ueetm")
 
-[node name="DropShadowCaster2D" type="Node2D" parent="CharacterBody2D"]
+[node name="DropShadowCaster2D" type="Node2D" parent="CharacterBody2D" unique_id=763585305]
 script = ExtResource("4_5ii4i")
 texture = SubResource("GradientTexture2D_seabo")
 shadow_size = Vector2(32, 16)
 shadow_max_distance = 256
 collision_mask = 2
-threshold = 0.009999999999999998
+threshold = 0.00999999999999999
 metadata/_custom_type_script = "uid://dv6ka6betcci3"
 
-[node name="AnimatedDropShadowCaster2D" type="Node2D" parent="CharacterBody2D"]
-visible = false
+[node name="AnimatedDropShadowCaster2D" type="Node2D" parent="CharacterBody2D" unique_id=956399198]
 modulate = Color(0, 0, 0, 0.705882)
 scale = Vector2(-1, 1)
 script = ExtResource("4_seabo")
@@ -405,14 +406,14 @@ shadow_max_distance = 256
 collision_mask = 2
 metadata/_custom_type_script = "uid://cn2qyoyf7jp4k"
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="CharacterBody2D" unique_id=30607850]
 scale = Vector2(2, 2)
 sprite_frames = SubResource("SpriteFrames_0xwfw")
 animation = &"idle"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1364907754]
 position = Vector2(0, 8)
 shape = SubResource("RectangleShape2D_bcdjy")
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1034873529]
 zoom = Vector2(1.5, 1.5)

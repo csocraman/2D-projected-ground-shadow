@@ -177,10 +177,10 @@ func create_points():
 	if get_parent() is CollisionObject2D:
 		points_param.exclude = [get_parent().get_rid()]
 	var dt = 0
+	var inv := 1
 	for x in steps:
 		
 		var x_position := (shadow_size.x)/float(steps - 1)*x-(shadow_size.x)/2.0
-		
 		var from = global_position + Vector2(x_position,0)
 		var to = global_position + Vector2(x_position,max_distance)
 		rayparams.hit_from_inside = false
@@ -319,6 +319,6 @@ func check_is_on_screen(polygons : Array[PackedVector2Array]):
 			if viewport_rect.has_point(point + global_position):
 				is_on_screen = true
 				break
-	if !is_on_screen and !Engine.is_editor_hint():
-		return false
-	return true
+	if is_on_screen or Engine.is_editor_hint():
+		return true
+	return false
