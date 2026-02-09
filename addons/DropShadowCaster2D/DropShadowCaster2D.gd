@@ -28,17 +28,13 @@ func _draw() -> void:
 		draw_line(Vector2(-shadow_size.x/2,0),Vector2(shadow_size.x/2,0),Color.CRIMSON,preview_line_tickness)
 	if _points.size() < 2 or texture == null:
 		return
-	_old_points = _points
-	_old_points.reverse()
+	_old_points = _points.duplicate()
 	
 	var polygon_shadow := ShadowPolygon.new(global_position)
 	polygon_shadow.shadow_max_distance = shadow_max_distance
 	
-	var bottom_points := _points
-	bottom_points.reverse()
-	
 	polygon_shadow.size_x = shadow_size.x
-	polygon_shadow.create_polygon(_points,bottom_points,shadow_size.y/2,true)
+	polygon_shadow.create_polygon(_points,_points,shadow_size.y/2,true)
 
 	var polygons : Array[PackedVector2Array]
 	var uvs : Array[PackedVector2Array]

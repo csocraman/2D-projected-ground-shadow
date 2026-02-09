@@ -182,14 +182,18 @@ func _create_points():
 	var from : Vector2
 	var to : Vector2
 	var result : Dictionary
+	var last :float= 0.0
+	var point := Vector2()
+	var signscale : Vector2 = scale.sign()
+	var height_difference : float
+	var last_point : Vector2
 	for x in resolution:
 		var x_position := (shadow_size.x)/float(resolution - 1)*x-(shadow_size.x)/2.0
 	
 		from = Vector2(x_position + global_position.x,global_position.y)
 		
 		to = global_position + Vector2(x_position,max_distance)
-		
-		
+
 		points_param.position = from
 		
 		var res = state.intersect_point(points_param)
@@ -209,10 +213,7 @@ func _create_points():
 		else:
 			height = max_distance - global_position.y
 		var distance_from_mask = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x)-x_pos_abs
-		var last :float= 0.0
-		var point := Vector2()
-		var signscale : Vector2 = scale.sign()
-		var height_difference : float
+		
 		if distance_from_mask >= (x_pos_abs-shadow_size.x*2/resolution):
 			if !result.is_empty():
 				if _points.is_empty() or distance_from_mask < (x_pos_abs):
@@ -233,14 +234,14 @@ func _create_points():
 					_points.append(point)
 				elif cand == null:
 					cand = point
+					last_point = _points[-1]
 				else:
-					height_difference = (cand.y - _points[-1].y) + (cand.y - point.y)
+					height_difference = (last_point.y - cand.y) + (cand.y - point.y)
 					
 					var th = threshold / resolution
-					
 					if absf(height_difference-last) >= th:
 						_points.append(cand)
-						
+					last_point = cand
 					last = height_difference
 					cand = point
 			else:
