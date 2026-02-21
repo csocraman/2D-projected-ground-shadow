@@ -380,24 +380,26 @@ tile_map_data = PackedByteArray("AAD5/wEAAQAAAAAAAAD6/wEAAQABAAAAAAD7/wEAAQABAAA
 tile_set = SubResource("TileSet_ueetm")
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=948293966]
-position = Vector2(-75, -135)
+position = Vector2(-31, 12)
 collision_mask = 2
 script = ExtResource("2_ueetm")
 
 [node name="DropShadowCaster2D" type="Node2D" parent="CharacterBody2D" unique_id=763585305]
-position = Vector2(6, 72)
+position = Vector2(0, 24)
 script = ExtResource("4_5ii4i")
 texture = SubResource("GradientTexture2D_seabo")
-shadow_size = Vector2(32, 16)
+shadow_size = Vector2(24, 16)
 shadow_max_distance = 256
 collision_mask = 2
+show_preview_line = true
+preview_line_tickness = -1.0
 show_sample_points = true
 show_polygon_points = true
 metadata/_custom_type_script = "uid://dv6ka6betcci3"
 
 [node name="AnimatedDropShadowCaster2D" type="Node2D" parent="CharacterBody2D" unique_id=956399198]
-visible = false
 modulate = Color(0, 0, 0, 0.705882)
+position = Vector2(0, 24)
 scale = Vector2(-1, 1)
 script = ExtResource("4_seabo")
 animation = SubResource("SpriteFrames_0xwfw")
@@ -418,6 +420,7 @@ frame = 7
 frame_progress = 1.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D" unique_id=1364907754]
+visible = false
 position = Vector2(0, 8)
 shape = SubResource("RectangleShape2D_bcdjy")
 
