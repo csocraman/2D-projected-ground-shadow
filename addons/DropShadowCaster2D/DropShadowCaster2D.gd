@@ -22,6 +22,8 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		
 func _draw() -> void:
+	draw_line(Vector2(shadow_size.x/2,0),Vector2(0,shadow_max_distance),Color.ALICE_BLUE)
+	draw_line(Vector2(-shadow_size.x/2,0),Vector2(0,shadow_max_distance),Color.ALICE_BLUE)
 	if (Engine.is_editor_hint() and show_in_editor):
 		return
 	if Engine.is_editor_hint() and show_preview_line:
@@ -34,14 +36,14 @@ func _draw() -> void:
 	polygon_shadow.shadow_max_distance = shadow_max_distance
 	
 	polygon_shadow.size_x = shadow_size.x
-	polygon_shadow.create_polygon(_points,_points,shadow_size.y/2,true)
+	polygon_shadow.create_polygon(_points,shadow_size.y/2,true)
 
 	var polygons : Array[PackedVector2Array]
 	var uvs : Array[PackedVector2Array]
 	polygons.append(polygon_shadow.polygon)
 	uvs.append(polygon_shadow.uv)
 
-	_create_leftovers(polygon_shadow,polygons,uvs)
+	_resolve_remaining_points(polygon_shadow,polygons,uvs)
 	
 	if !_check_is_on_screen(polygons):
 		return

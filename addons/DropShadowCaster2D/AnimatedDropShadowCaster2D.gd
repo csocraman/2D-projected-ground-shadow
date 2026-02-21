@@ -85,16 +85,14 @@ func _draw() -> void:
 	polygon_shadow.shadow_max_distance = shadow_max_distance
 	
 	polygon_shadow.size_x = shadow_size.x
-	polygon_shadow.create_polygon(_points,_points,shadow_size.y/2,true)
+	polygon_shadow.create_polygon(_points,shadow_size.y/2,true)
 
 	_polygons.clear()
 	_uvs.clear()
 	_polygons.append(polygon_shadow.polygon)
 	_uvs.append(polygon_shadow.uv)
 
-	var leftover_shadowpolygon = ShadowPolygon.new(global_position)
-	
-	_create_leftovers(polygon_shadow,_polygons,_uvs)
+	_resolve_remaining_points(polygon_shadow,_polygons,_uvs)
 	
 	if ! _check_is_on_screen(_polygons):
 		return

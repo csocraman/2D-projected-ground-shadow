@@ -1,4 +1,4 @@
-[gd_scene format=4 uid="uid://big8gwpo1rkvy"]
+[gd_scene format=4 uid="uid://cs12rkdcvmsus"]
 
 [ext_resource type="Texture2D" uid="uid://c05el4j1krjdq" path="res://addons/2D-projected-ground-shadow/addons/DropShadowCaster2D/Examples/tilemap.png" id="1_cfprt"]
 [ext_resource type="Texture2D" uid="uid://4g37bhgyypvf" path="res://addons/2D-projected-ground-shadow/addons/DropShadowCaster2D/Examples/knight.png" id="2_bcdjy"]
@@ -380,11 +380,12 @@ tile_map_data = PackedByteArray("AAD5/wEAAQAAAAAAAAD6/wEAAQABAAAAAAD7/wEAAQABAAA
 tile_set = SubResource("TileSet_ueetm")
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=948293966]
-position = Vector2(-88, -102)
+position = Vector2(-75, -135)
 collision_mask = 2
 script = ExtResource("2_ueetm")
 
 [node name="DropShadowCaster2D" type="Node2D" parent="CharacterBody2D" unique_id=763585305]
+position = Vector2(6, 72)
 script = ExtResource("4_5ii4i")
 texture = SubResource("GradientTexture2D_seabo")
 shadow_size = Vector2(32, 16)
