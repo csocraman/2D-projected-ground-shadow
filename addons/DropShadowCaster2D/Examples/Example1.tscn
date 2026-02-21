@@ -380,7 +380,7 @@ tile_map_data = PackedByteArray("AAD5/wEAAQAAAAAAAAD6/wEAAQABAAAAAAD7/wEAAQABAAA
 tile_set = SubResource("TileSet_ueetm")
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=948293966]
-position = Vector2(-31, 12)
+position = Vector2(-71, -49)
 collision_mask = 2
 script = ExtResource("2_ueetm")
 
@@ -398,6 +398,7 @@ show_polygon_points = true
 metadata/_custom_type_script = "uid://dv6ka6betcci3"
 
 [node name="AnimatedDropShadowCaster2D" type="Node2D" parent="CharacterBody2D" unique_id=956399198]
+visible = false
 modulate = Color(0, 0, 0, 0.705882)
 position = Vector2(0, 24)
 scale = Vector2(-1, 1)

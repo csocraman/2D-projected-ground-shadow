@@ -28,7 +28,7 @@ signal points_created
 ## The maximum lenght each ray.
 @export var max_distance := 1000.0
 @export_group('Optimization')
-## Tries to remove unnecessary points in straight lines, keeping only the first and last.
+## Tries to remove unnecessary points in straight lines, keeping only the first and last_height_difference.
 @export var points_simplification := true
 ## Tolerance threshold for detecting whether a point lies on a straight line. While changing this value usually results in minimal visual differences, it still affects the accuracy of the simplification process.
 @export_range(0.001,1.0,0.001) var threshold := 0.002
@@ -64,7 +64,7 @@ class ShadowPolygon:
 	func _init(position : Vector2) -> void:
 		self.position = position
 	
-	func create_polygon(Top : PackedVector2Array,Size_y : float,shadow_rotation : float = 0.0):
+	func create_polygon(Top : PackedVector2Array,Size_y : float,shadow_rotation : float = 0.0) -> void:
 		var Top_polygon_points := Top.duplicate()
 		var Bottom_polygon_points := Top.duplicate()
 	
@@ -72,6 +72,8 @@ class ShadowPolygon:
 		height_map.clear()
 		polygon.clear()
 		remaining_points.clear()
+		EndIndex = 0
+		
 		for point in Top_polygon_points:
 			height_map.append(abs(point.y))
 		for x in Top_polygon_points.size():
@@ -82,10 +84,8 @@ class ShadowPolygon:
 	
 		var last_point : Vector2
 		var split := false
-		EndIndex = 0
 		var StartremainingpointsIndex : int
 		var all_points : PackedVector2Array
-		all_points.clear()
 		all_points.append_array(Top_polygon_points)
 	
 		var Bottom_polygon_points_reversed = Bottom_polygon_points.duplicate()
@@ -130,7 +130,7 @@ class ShadowPolygon:
 					polygon[i].y -= height_map[clamp((2*(EndIndex) - i + 1),0,height_map.size() - 1)]*(Size_y/shadow_max_distance)
 					
 				
-	func create_uv(Top,sizex,shadow_rotation):
+	func create_uv(Top,sizex,shadow_rotation) -> void:
 		if polygon.is_empty():
 			return
 
@@ -141,7 +141,10 @@ class ShadowPolygon:
 			var width = (shadow_max_distance - height_map[(p-(EndIndex+1))])/shadow_max_distance*sizex
 			uv.append(Vector2((polygon[p].x+width/2) / width,1.0))
 
-func _create_points():
+func _mix(a,b,f):
+	return a*f + (1.0 - f)*b
+
+func _create_points() -> void:
 	if collision_mask == null or collision_mask == 0:
 		return
 	
@@ -156,12 +159,12 @@ func _create_points():
 		rayparams = PhysicsRayQueryParameters2D.create(Vector2.ZERO,Vector2.ZERO,collision_mask)
 	if get_parent() is CollisionObject2D:
 		points_param.exclude = [get_parent().get_rid()]
-	var cand
+	var candidate
 	rayparams.hit_from_inside = false
 	var from : Vector2
 	var to : Vector2
 	var result : Dictionary
-	var last :float= 0.0
+	var last_height_difference :float= 0.0
 	var point := Vector2()
 	var signscale : Vector2 = scale.sign()
 	var height_difference : float
@@ -170,7 +173,6 @@ func _create_points():
 		var x_position := (shadow_size.x)/float(resolution - 1)*x-(shadow_size.x)/2.0
 	
 		from = Vector2(x_position + global_position.x,global_position.y)
-		
 		to = global_position + Vector2(x_position,max_distance)
 
 		points_param.position = from
@@ -191,6 +193,7 @@ func _create_points():
 			height = result.position.y - global_position.y
 		else:
 			height = max_distance - global_position.y
+
 		var distance_from_mask = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x)-x_pos_abs
 		
 		if distance_from_mask >= (x_pos_abs-shadow_size.x*2/resolution):
@@ -206,39 +209,38 @@ func _create_points():
 			if points_simplification:
 				if _points.size() < 1:
 					_points.append(point)
-				elif cand == null:
-					cand = point
+				elif candidate == null:
+					candidate = point
 					last_point = _points[-1]
 				else:
-					height_difference = (last_point.y - cand.y) + (cand.y - point.y)
+					height_difference = (last_point.y - candidate.y) + (candidate.y - point.y)
 					
 					var th = threshold / resolution
-					if absf(height_difference-last) >= th:
-						_points.append(cand)
-					last_point = cand
-					last = height_difference
-					cand = point
+					if absf(height_difference-last_height_difference) >= th:
+						_points.append(candidate)
+					last_point = candidate
+					last_height_difference = height_difference
+					candidate = point
 			else:
 				_points.append(point)
-		if x >= resolution-1 and cand != null:
-			_points.append(cand)
-	var sides = []
+		if x >= resolution-1 and candidate != null:
+			_points.append(candidate)
+	var sides = [_points[0],_points[-1]]
 	if _points.size() > 1:
 		for i in range(-1,1):
 			var p = _points[i]
 			var height = p.y
-			var x_position = p.x
-			var xp = abs(x_position)
-			var distance_from_mask = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x/2.0)-xp
-			var f = clampf(absf(distance_from_mask)/absf(p.x-_points[i+2*sign(i)+1].x),0.,1.)
+			var abs_xpos = abs(p.x)
+			var distance_from_mask = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x/2.0)-abs_xpos
+			var point_before = _points[i+2*sign(i)+1]
+			var f = clampf(absf(distance_from_mask)/absf(p.x-point_before.x),0.,1.)
 			if distance_from_mask <= 0:
-				sides.push_front(_points[i+2*sign(i)+1]*f +p*(1.-f)*signscale-shadow_offset)
+				sides[i] = _mix(point_before,p*signscale,f) - shadow_offset
 		for i in range(-1,1):
-			if sides.size() > 1:
-				_points[i] = sides[i]
+			_points[i] = sides[i]
 	points_created.emit()
 	
-func _triangulate_polygon(polygon : PackedVector2Array):
+func _triangulate_polygon(polygon : PackedVector2Array) -> PackedInt32Array:
 	var size = polygon.size()/2
 	var result = PackedInt32Array()
 	for i in size-1:
@@ -254,10 +256,10 @@ func _triangulate_polygon(polygon : PackedVector2Array):
 func get_points_distance() -> PackedFloat32Array:
 	var distance = PackedFloat32Array()
 	for point in _points:
-		distance.append(position.distance_to(Vector2(position.x,point.y)) + shadow_offset.y)
+		distance.append(point.y + shadow_offset.y)
 	return distance
 
-func _resolve_remaining_points(shadow_polygon : ShadowPolygon, polygons : Array[PackedVector2Array],uvs : Array[PackedVector2Array]):
+func _resolve_remaining_points(shadow_polygon : ShadowPolygon, polygons : Array[PackedVector2Array],uvs : Array[PackedVector2Array]) -> void:
 	var new_shadow_polygon = ShadowPolygon.new(global_position)
 	
 	if !shadow_polygon.remaining_points.is_empty():
