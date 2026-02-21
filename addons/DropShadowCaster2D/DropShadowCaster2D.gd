@@ -22,8 +22,6 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		
 func _draw() -> void:
-	draw_line(Vector2(shadow_size.x/2,0),Vector2(0,shadow_max_distance),Color.ALICE_BLUE)
-	draw_line(Vector2(-shadow_size.x/2,0),Vector2(0,shadow_max_distance),Color.ALICE_BLUE)
 	if (Engine.is_editor_hint() and show_in_editor):
 		return
 	if Engine.is_editor_hint() and show_preview_line:
