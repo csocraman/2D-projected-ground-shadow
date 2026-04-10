@@ -19,7 +19,7 @@ signal points_created
 ##The distance at which the shadow diminishes to zero. For example, if this value is 256, at the distance of 128 from the ground, the shadow will be half its size.
 @export var shadow_max_distance := 1000
 ## Toggles the preview in editor.
-@export var show_in_editor := false
+@export var show_in_editor := true
 @export_group('Sampling')
 ## Resolution of the shadow. The bigger the value more precise the shadow will be.
 @export_range(2.0,100000) var resolution := 64
@@ -42,11 +42,13 @@ signal points_created
 	set(new):
 		show_sample_points = new
 		queue_redraw()
+@export var sample_points_radius := 1.0
 ## Shows the points of the shadow polygon colored with its UV coordinate.
 @export var show_polygon_points : bool:
 	set(new):
 		show_polygon_points = new
 		queue_redraw()
+@export var polygon_points_radius := 1.0
 
 var _points := PackedVector2Array()
 
@@ -225,8 +227,8 @@ func _create_points() -> void:
 				_points.append(point)
 		if x >= resolution-1 and candidate != null:
 			_points.append(candidate)
-	var sides = [_points[0],_points[-1]]
 	if _points.size() > 1:
+		var sides = [_points[0],_points[-1]]
 		for i in range(-1,1):
 			var p = _points[i]
 			var height = p.y

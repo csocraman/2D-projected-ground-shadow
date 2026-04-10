@@ -367,6 +367,8 @@ animations = [{
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_bcdjy"]
 size = Vector2(20, 32)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_seabo"]
+
 [node name="Example1" type="Node2D" unique_id=63459522]
 texture_filter = 1
 
@@ -380,7 +382,7 @@ tile_map_data = PackedByteArray("AAD5/wEAAQAAAAAAAAD6/wEAAQABAAAAAAD7/wEAAQABAAA
 tile_set = SubResource("TileSet_ueetm")
 
 [node name="CharacterBody2D" type="CharacterBody2D" parent="." unique_id=948293966]
-position = Vector2(-71, -49)
+position = Vector2(-30, -20)
 collision_mask = 2
 script = ExtResource("2_ueetm")
 
@@ -427,3 +429,11 @@ shape = SubResource("RectangleShape2D_bcdjy")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1034873529]
 zoom = Vector2(1.5, 1.5)
+
+[node name="StaticBody2D" type="StaticBody2D" parent="." unique_id=334492464]
+position = Vector2(-18, 99)
+collision_layer = 3
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StaticBody2D" unique_id=152390397]
+shape = SubResource("RectangleShape2D_seabo")
