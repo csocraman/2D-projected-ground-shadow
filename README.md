@@ -1,5 +1,8 @@
 # 2D projected ground shadow
 
+## ⚠️If the shadow is not working in tilemaplayers⚠️
+just change any propertries of the tilemaplayer then change it back
+
 Generates a ground-projected shadow polygon based on collision points detected by several rays.
 
 ![Demostration](https://i.imgur.com/NW63TxJ.gif)
@@ -19,6 +22,3 @@ Generates a ground-projected shadow polygon based on collision points detected b
 ### ● Animated Shadows
 
 ![Demostration2](https://i.imgur.com/rn5fw9q.gif)
-
-## ⚠️If the shadow is not working in tilemaplayers⚠️
-just change any propertries of the tilemaplayer then change it back
