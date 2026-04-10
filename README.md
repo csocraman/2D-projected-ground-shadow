@@ -6,12 +6,13 @@ Generates a ground-projected shadow polygon based on collision points detected b
 
 ## Features
 
-- ### Custom textures
+- ### ![s](addons/DropShadowCaster2D/Icons/DropShadowCaster2D.svg) `DropShadowCaster2D`
 
-Allows you to put custom textures on the shadow with `DropShadowCaster2D` node
+`DropShadowCaster2D` draws shadows using a custom texture.
 
 > [!WARNING]
 > If the shadows do not appear in the editor in TilemapLayers, just change any property of the TilemapLayer and then change it back.
+
 
 ![Demostration2](https://i.imgur.com/SW6X1EN.png)
 
@@ -20,15 +21,10 @@ Allows you to put custom textures on the shadow with `DropShadowCaster2D` node
 <!-- ### Customizable level of detail
 ![Demostration2](https://i.imgur.com/45sw6wJ.gif)-->
 
-- ### Animated Shadows
+- ### ![s](addons/DropShadowCaster2D/Icons/AnimatedDropShadowCaster2D.svg) `AnimatedDropShadowCaster2D`
 
-Shadows can also be animated with the `AnimatedDropShadowCaster2D` node
+Renders a animated shadow using a `SpriteFrames` resource.
 
 ![Demostration4](https://i.imgur.com/rn5fw9q.gif)
-|`AnimatedDropShadowCaster2D` methods|
-|---|
-|float get_animation_duration(animationname: String)|
-|AtlasTexture get_current_frame()
-|void pause()
-|void play(animationname: String)
-|void stop()
+
+`void pause()`,`void play(animationname: String)` and `void stop()` are methods used to control the shadow animation.
