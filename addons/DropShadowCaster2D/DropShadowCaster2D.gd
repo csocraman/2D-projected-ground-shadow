@@ -23,6 +23,7 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		
 func _draw() -> void:
+	
 	if (Engine.is_editor_hint() and !show_in_editor):
 		return
 	if Engine.is_editor_hint() and show_preview_line:
