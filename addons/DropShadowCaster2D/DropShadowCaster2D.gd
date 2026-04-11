@@ -14,9 +14,10 @@ var _old_points := PackedVector2Array()
 
 
 func _process(delta: float) -> void:
-	if !is_visible_in_tree():
-		return
 	_points = []
+	if !is_visible_in_tree() or (Engine.is_editor_hint() and !show_in_editor):
+		_old_points = []
+		return
 	_create_points()
 	if _old_points != _points:
 		queue_redraw()

@@ -4,9 +4,9 @@
 
 Generates a ground-projected shadow polygon based on collision points detected by several rays.
 
-## Features
+# Features
 
-- ### ![s](addons/DropShadowCaster2D/Icons/DropShadowCaster2D.svg) `DropShadowCaster2D`
+- ## ![s](addons/DropShadowCaster2D/Icons/DropShadowCaster2D.svg) `DropShadowCaster2D`
 
 `DropShadowCaster2D` draws shadows using a custom texture.
 
@@ -21,7 +21,7 @@ Generates a ground-projected shadow polygon based on collision points detected b
 <!-- ### Customizable level of detail
 ![Demostration2](https://i.imgur.com/45sw6wJ.gif)-->
 
-- ### ![s](addons/DropShadowCaster2D/Icons/AnimatedDropShadowCaster2D.svg) `AnimatedDropShadowCaster2D`
+- ## ![s](addons/DropShadowCaster2D/Icons/AnimatedDropShadowCaster2D.svg) `AnimatedDropShadowCaster2D`
 
 Renders a animated shadow using a `SpriteFrames` resource.
 

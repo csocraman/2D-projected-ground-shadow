@@ -13,13 +13,26 @@ signal points_created
 		shadow_size = new
 		queue_redraw()
 ##Shadow rotation.[br][br][b]Note:[/b]shadow_rotation will not change the shape of the shadow polygon only the sprite.
-@export_range(-180,180,0.1,"radians_as_degrees") var shadow_rotation := 0.0
+@export_range(-180,180,0.1,"radians_as_degrees") var shadow_rotation := 0.0:
+	set(new):
+		shadow_rotation = new
+		queue_redraw()
 ##The offset of the shadow.[br][br][b]Note:[/b]shadow_offset will not affect the shape of the resulting shadow only its displacement.
-@export var shadow_offset : Vector2
+@export var shadow_offset : Vector2:
+	set(new):
+		shadow_offset = new
+		queue_redraw()
 ##The distance at which the shadow diminishes to zero. For example, if this value is 256, at the distance of 128 from the ground, the shadow will be half its size.
-@export var shadow_max_distance := 1000
+@export var shadow_max_distance := 1000:
+	set(new):
+		shadow_max_distance = new
+		queue_redraw()
 ## Toggles the preview in editor.
-@export var show_in_editor := true
+@export var show_in_editor := true:
+	set(new):
+		show_in_editor = new
+		if !new:
+			queue_redraw()
 @export_group('Sampling')
 ## Resolution of the shadow. The bigger the value more precise the shadow will be.
 @export_range(2.0,100000) var resolution := 64
@@ -34,21 +47,33 @@ signal points_created
 @export_range(0.001,1.0,0.001) var threshold := 0.002
 @export_group('Debug')
 ## Draws a line previewing the shadow width.
-@export var show_preview_line := false
+@export var show_preview_line := false:
+	set(new):
+		show_preview_line = new
+		queue_redraw()
 ## The ticknes of the line previewing the shadow width.
-@export var preview_line_tickness := 20.0
+@export var preview_line_tickness := -1.0:
+	set(new):
+		preview_line_tickness = new
+		queue_redraw()
 ## Toggles drawing of sample points from each shadow ray.
 @export var show_sample_points : bool:
 	set(new):
 		show_sample_points = new
 		queue_redraw()
-@export var sample_points_radius := 1.0
+@export var sample_points_radius := 1.0:
+	set(new):
+		sample_points_radius = new
+		queue_redraw()
 ## Shows the points of the shadow polygon colored with its UV coordinate.
 @export var show_polygon_points : bool:
 	set(new):
 		show_polygon_points = new
 		queue_redraw()
-@export var polygon_points_radius := 1.0
+@export var polygon_points_radius := 1.0:
+	set(new):
+		polygon_points_radius = new
+		queue_redraw()
 
 var _points := PackedVector2Array()
 

@@ -61,9 +61,9 @@ func _process(delta: float) -> void:
 			else:
 				current_frame = clamp(current_frame,0,animation.get_frame_count(current_animation)-1)
 			_time_acc = fmod(_time_acc,get_animation_duration(current_animation))
-	if !is_visible_in_tree():
-		return
 	_points = []
+	if !is_visible_in_tree() or (Engine.is_editor_hint() and !show_in_editor):
+		return
 	_create_points()
 	
 	if animation != null:
@@ -78,8 +78,7 @@ func _draw() -> void:
 	if _points.size() < 2:
 		return
 
-	_old_points = _points
-	_old_points.reverse()
+	_old_points = _points.duplicate()
 
 	var polygon_shadow := ShadowPolygon.new(global_position)
 	polygon_shadow.shadow_max_distance = shadow_max_distance
