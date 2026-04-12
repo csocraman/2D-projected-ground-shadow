@@ -11,7 +11,7 @@ Generates a ground-projected shadow polygon based on collision points detected b
 `DropShadowCaster2D` draws shadows using a custom texture.
 
 > [!WARNING]
-> If the shadows do not appear in the editor in TilemapLayers, just change any property of the TilemapLayer and then change it back.
+> If the shadows do not appear in the editor in TilemapLayers, change any property of the TilemapLayer and then change it back to update the tilemap collisions.
 
 
 ![Demostration2](https://i.imgur.com/SW6X1EN.png)
