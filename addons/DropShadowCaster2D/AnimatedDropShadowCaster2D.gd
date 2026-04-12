@@ -84,7 +84,7 @@ func _draw() -> void:
 	polygon_shadow.shadow_max_distance = shadow_max_distance
 	
 	polygon_shadow.size_x = shadow_size.x
-	polygon_shadow.create_polygon(_points,shadow_size.y/2,true)
+	polygon_shadow.create_polygon(_points,shadow_size.y/2,shadow_offset)
 
 	_polygons.clear()
 	_uvs.clear()
