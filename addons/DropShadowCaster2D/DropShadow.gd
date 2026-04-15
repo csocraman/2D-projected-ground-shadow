@@ -43,7 +43,7 @@ signal points_created
 @export_group('Optimization')
 ## Tries to remove unnecessary points in straight lines, keeping only the first and last_height_difference.
 @export var points_simplification := true
-## Tolerance threshold for detecting whether a point lies on a straight line. While changing this value usually results in minimal visual differences, it still affects the accuracy of the simplification process.
+## Tolerance threshold for detecting whether a point lies on a straight line.
 @export_range(0.001,1.0,0.001) var threshold := 0.002
 @export_group('Debug')
 ## Draws a line previewing the shadow width.
@@ -86,23 +86,24 @@ class ShadowPolygon:
 	var position : Vector2
 	var shadow_max_distance : int
 	var size_x : float
-	var height_map := []
+	var points_height := []
 
 	func _init(position : Vector2) -> void:
 		self.position = position
 	
-	func create_polygon(Top : PackedVector2Array,Size_y : float, offset : Vector2, shadow_rotation : float = 0.0) -> void:
-		var Top_polygon_points := Top.duplicate()
-		var Bottom_polygon_points := Top.duplicate()
-	
+	func create_polygon(sample_points : PackedVector2Array,Size_y : float, offset : Vector2, shadow_rotation : float = 0.0) -> void:
+		var Top_polygon_points := sample_points.duplicate()
+		var Bottom_polygon_points := sample_points.duplicate()
+		
 		uv.clear()
-		height_map.clear()
-		polygon.clear()
 		remaining_points.clear()
+		polygon.clear()
+		points_height.clear()
 		EndIndex = 0
 		
 		for point in Top_polygon_points:
-			height_map.append(abs(point.y))
+			points_height.append(abs(point.y))
+		
 		for x in Top_polygon_points.size():
 			Top_polygon_points[x] -= Vector2(0,Size_y)
 		for x in Bottom_polygon_points.size():
@@ -112,12 +113,9 @@ class ShadowPolygon:
 		var last_point : Vector2
 		var split := false
 		var StartremainingpointsIndex : int
-		var all_points : PackedVector2Array
-		all_points.append_array(Top_polygon_points)
 	
 		var Bottom_polygon_points_reversed = Bottom_polygon_points.duplicate()
 		Bottom_polygon_points_reversed.reverse()
-		all_points.append_array(Bottom_polygon_points_reversed)
 		for index in Top_polygon_points.size():
 			var top_point = Top_polygon_points[index]
 			if index == 0:
@@ -130,7 +128,7 @@ class ShadowPolygon:
 			var angle_to_last_point = absf(atan2(dir.y,absf(dir.x)))
 
 			if angle_to_last_point > deg_to_rad(70):
-				height_map.insert(index,height_map[index-1])
+				points_height.insert(index,points_height[index-1])
 				split = true
 				StartremainingpointsIndex = index
 				last_point = top_point
@@ -138,36 +136,37 @@ class ShadowPolygon:
 			last_point = top_point
 			polygon.append(top_point+offset)
 			EndIndex = index
+		
 		if split:
-			remaining_points.append_array(Top.slice(StartremainingpointsIndex,Top_polygon_points.size()))
+			remaining_points.append_array(sample_points.slice(StartremainingpointsIndex,Top_polygon_points.size()))
 		polygon_bottom.append_array(Bottom_polygon_points.slice(0,EndIndex+1))
 		for point in polygon_bottom.size():
 			polygon_bottom[point] += offset
+			
 		if remaining_points.size() > 0:
 			remaining_points[0].x = (remaining_points[0].x + polygon[polygon.size()-1].x)/2
 	
 		polygon_bottom.reverse()
 		polygon.append_array(polygon_bottom)
 
-		create_uv(Top_polygon_points,size_x,shadow_rotation,offset)
-
-		if Top.size() > 0:
+		create_uv(size_x,shadow_rotation,offset)
+		if sample_points.size() > 0:
 			for i in polygon.size():
 				if i <= EndIndex:
-					polygon[i].y += height_map[i]*(Size_y/shadow_max_distance)
+					polygon[i].y += points_height[i]*(Size_y/shadow_max_distance)
 				else:
-					polygon[i].y -= height_map[clamp((2*(EndIndex) - i + 1),0,height_map.size() - 1)]*(Size_y/shadow_max_distance)
+					polygon[i].y -= points_height[clamp((2*(EndIndex) - i + 1),0,points_height.size() - 1)]*(Size_y/shadow_max_distance)
 					
 				
-	func create_uv(Top,sizex,shadow_rotation,offset : Vector2) -> void:
+	func create_uv(sizex,shadow_rotation,offset : Vector2) -> void:
 		if polygon.is_empty():
 			return
 
 		for p : float in range(0,EndIndex + 1):
-			var width = (shadow_max_distance - height_map[p])/shadow_max_distance*sizex
+			var width = (shadow_max_distance - points_height[p])/shadow_max_distance*sizex
 			uv.append(Vector2((polygon[p].x-offset.x+width/2) / width,0.0))
 		for p : float in range(EndIndex+1,polygon.size()):
-			var width = (shadow_max_distance - height_map[(p-(EndIndex+1))])/shadow_max_distance*sizex
+			var width = (shadow_max_distance - points_height[(p-(EndIndex+1))])/shadow_max_distance*sizex
 			uv.append(Vector2((polygon[p].x-offset.x+width/2) / width,1.0))
 
 func _mix(a,b,f):
@@ -289,11 +288,10 @@ func get_points_distance() -> PackedFloat32Array:
 	return distance
 
 func _resolve_remaining_points(shadow_polygon : ShadowPolygon, polygons : Array[PackedVector2Array],uvs : Array[PackedVector2Array]) -> void:
-	var new_shadow_polygon = ShadowPolygon.new(global_position)
-	
 	if !shadow_polygon.remaining_points.is_empty():
+		var new_shadow_polygon = ShadowPolygon.new(global_position)
 		new_shadow_polygon.size_x = shadow_polygon.size_x
-		new_shadow_polygon.StartIndex = shadow_polygon.EndIndex + shadow_polygon.StartIndex
+		#new_shadow_polygon.StartIndex = shadow_polygon.EndIndex + shadow_polygon.StartIndex
 		new_shadow_polygon.shadow_max_distance = shadow_max_distance
 		new_shadow_polygon.create_polygon(shadow_polygon.remaining_points,shadow_size.y/2, shadow_offset,shadow_rotation)
 		
@@ -301,9 +299,9 @@ func _resolve_remaining_points(shadow_polygon : ShadowPolygon, polygons : Array[
 		uvs.append(new_shadow_polygon.uv.duplicate())
 		
 		while !new_shadow_polygon.remaining_points.is_empty():
-			new_shadow_polygon.StartIndex = new_shadow_polygon.EndIndex + new_shadow_polygon.StartIndex
+			#new_shadow_polygon.StartIndex = new_shadow_polygon.EndIndex + new_shadow_polygon.StartIndex
 			new_shadow_polygon.shadow_max_distance = shadow_max_distance
-			new_shadow_polygon.create_polygon(new_shadow_polygon.remaining_points,shadow_size.y/2, shadow_offset,shadow_rotation)
+			new_shadow_polygon.create_polygon(new_shadow_polygon.remaining_points.duplicate(),shadow_size.y/2, shadow_offset,shadow_rotation)
 			
 			polygons.append(new_shadow_polygon.polygon.duplicate())
 			uvs.append(new_shadow_polygon.uv.duplicate())

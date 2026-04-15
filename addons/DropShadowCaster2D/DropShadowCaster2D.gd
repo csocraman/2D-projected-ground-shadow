@@ -12,6 +12,7 @@ class_name DropShadowCaster2D
 
 var _old_points := PackedVector2Array()
 
+var colors := [Color.ALICE_BLUE,Color.YELLOW,Color.CHARTREUSE]
 
 func _process(delta: float) -> void:
 	_points = []
@@ -54,9 +55,12 @@ func _draw() -> void:
 			uv[p] -= Vector2.ONE/2
 			uv[p] = uv[p].rotated(shadow_rotation)
 			uv[p] += Vector2.ONE/2
+		
 		if polygon.size() < 3 or uv.size() != polygon.size():
 			continue
+		
 		RenderingServer.canvas_item_add_triangle_array(get_canvas_item(),_triangulate_polygon(polygon),polygon,[],uv,[],[],texture.get_rid())
+		
 		if show_polygon_points:
 			for point_index : float in polygon.size():
 				draw_circle(polygon[point_index],polygon_points_radius,Color(uv[point_index].x,uv[point_index].y,0))
