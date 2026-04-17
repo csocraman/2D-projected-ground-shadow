@@ -12,8 +12,6 @@ class_name DropShadowCaster2D
 
 var _old_points := PackedVector2Array()
 
-var colors := [Color.ALICE_BLUE,Color.YELLOW,Color.CHARTREUSE]
-
 func _process(delta: float) -> void:
 	_points = []
 	if !is_visible_in_tree() or (Engine.is_editor_hint() and !show_in_editor):
