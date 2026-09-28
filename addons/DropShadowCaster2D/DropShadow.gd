@@ -63,6 +63,7 @@ signal points_created
 	set(new):
 		preview_line_color = new
 		queue_redraw()
+@export var show_only_in_editor := true
 
 @export_subgroup("Sample points")
 ## Toggles drawing of sample points from each shadow ray.
@@ -241,16 +242,16 @@ func _create_points() -> void:
 		to = global_position + Vector2(x_position,max_distance)
 
 		points_param.position = from
-		
+		rayparams.from = from
+		rayparams.to = to
 		var res : Array[Dictionary] = state.intersect_point(points_param)
 		if !res.is_empty():
-			
 			if x_position < 0:
 				_points.clear()
 			else:
+				if candidate != null:
+					_points.append(candidate)
 				break
-		rayparams.from = from
-		rayparams.to = to
 		
 		result = state.intersect_ray(rayparams)
 		var x_pos_abs : float = absf(x_position)
