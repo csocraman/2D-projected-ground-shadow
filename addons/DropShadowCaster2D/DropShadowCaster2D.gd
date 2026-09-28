@@ -26,7 +26,7 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	if (Engine.is_editor_hint() and !show_in_editor):
 		return
-	if Engine.is_editor_hint() and show_preview_line:
+	if (Engine.is_editor_hint() or !show_only_in_editor) and show_preview_line:
 		draw_line(Vector2(-shadow_size.x/2,0),Vector2(shadow_size.x/2,0),preview_line_color,preview_line_tickness)
 	if _points.size() < 2 or texture == null:
 		return
