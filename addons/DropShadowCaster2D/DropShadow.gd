@@ -8,7 +8,7 @@ class_name DropShadow2D
 signal points_created
 
 ## The size of the shadow.
-@export var shadow_size := Vector2(64,64):
+@export_custom(PROPERTY_HINT_LINK,"suffix:px") var shadow_size := Vector2(64,64):
 	set(new):
 		shadow_size = new
 		queue_redraw()
@@ -18,59 +18,76 @@ signal points_created
 		shadow_rotation = new
 		queue_redraw()
 ##The offset of the shadow.[br][br][b]Note:[/b]shadow_offset will not affect the shape of the resulting shadow only its displacement.
-@export var shadow_offset : Vector2:
+@export_custom(PROPERTY_HINT_LINK,"suffix:px") var shadow_offset : Vector2:
 	set(new):
 		shadow_offset = new
 		queue_redraw()
 ##The distance at which the shadow diminishes to zero. For example, if this value is 256, at the distance of 128 from the ground, the shadow will be half its size.
-@export var shadow_max_distance := 1000:
+@export_range(1.0,2000.0,1.0,"suffix:px","or_greater") var shadow_max_distance : int = 1000:
 	set(new):
-		shadow_max_distance = new
+		shadow_max_distance = maxi(new,1)
 		queue_redraw()
 ## Toggles the preview in editor.
 @export var show_in_editor := true:
 	set(new):
 		show_in_editor = new
-		if !new:
-			queue_redraw()
+		queue_redraw()
+
 @export_group('Sampling')
 ## Resolution of the shadow. The bigger the value more precise the shadow will be.
 @export_range(2.0,100000) var resolution := 64
 ## The physics layer that the shadow uses.
 @export_flags_2d_physics var collision_mask := 1
 ## The maximum lenght each ray.
-@export var max_distance := 1000.0
+@export_range(0.0,2000.0,0.2,"suffix:px","or_greater") var max_distance := 1000.0
 @export_group('Optimization')
 ## Tries to remove unnecessary points in straight lines, keeping only the first and last_height_difference.
 @export var points_simplification := true
 ## Tolerance threshold for detecting whether a point lies on a straight line.
 @export_range(0.001,1.0,0.001) var threshold := 0.002
+
 @export_group('Debug')
+@export_subgroup("Preview line")
 ## Draws a line previewing the shadow width.
-@export var show_preview_line := false:
+@export_custom(PROPERTY_HINT_GROUP_ENABLE,"") var show_preview_line := false:
 	set(new):
 		show_preview_line = new
 		queue_redraw()
-## The ticknes of the line previewing the shadow width.
-@export var preview_line_tickness := -1.0:
+		notify_property_list_changed()
+## The thickness of the line previewing the shadow width.
+@export_range(-1.0,64.0,0.2,"suffix:px","or_greater") var preview_line_tickness : float = -1.0:
 	set(new):
 		preview_line_tickness = new
 		queue_redraw()
+@export_color_no_alpha var preview_line_color : Color = Color.CRIMSON:
+	set(new):
+		preview_line_color = new
+		queue_redraw()
+
+@export_subgroup("Sample points")
 ## Toggles drawing of sample points from each shadow ray.
-@export var show_sample_points : bool:
+@export_custom(PROPERTY_HINT_GROUP_ENABLE,"") var show_sample_points : bool:
 	set(new):
 		show_sample_points = new
 		queue_redraw()
-@export var sample_points_radius := 1.0:
+		notify_property_list_changed()
+@export_range(-1.0,32.0,0.2,"suffix:px","or_greater") var sample_points_radius := 1.0:
 	set(new):
 		sample_points_radius = new
 		queue_redraw()
+@export_color_no_alpha var sample_points_color : Color = Color.WHITE :
+	set(new):
+		sample_points_color = new
+		queue_redraw()
+
+@export_subgroup("Polygon points")
 ## Shows the points of the shadow polygon colored with its UV coordinate.
-@export var show_polygon_points : bool:
+@export_custom(PROPERTY_HINT_GROUP_ENABLE,"") var show_polygon_points : bool:
 	set(new):
 		show_polygon_points = new
 		queue_redraw()
-@export var polygon_points_radius := 1.0:
+		notify_property_list_changed()
+@export_range(-1.0,32.0,0.2,"suffix:px","or_greater") var polygon_points_radius := 1.0:
 	set(new):
 		polygon_points_radius = new
 		queue_redraw()
@@ -86,7 +103,7 @@ class ShadowPolygon:
 	var position : Vector2
 	var shadow_max_distance : int
 	var size_x : float
-	var points_height := []
+	var points_height : PackedFloat32Array = []
 
 	func _init(position : Vector2) -> void:
 		self.position = position
@@ -114,18 +131,18 @@ class ShadowPolygon:
 		var split := false
 		var StartremainingpointsIndex : int
 	
-		var Bottom_polygon_points_reversed = Bottom_polygon_points.duplicate()
+		var Bottom_polygon_points_reversed : PackedVector2Array = Bottom_polygon_points.duplicate()
 		Bottom_polygon_points_reversed.reverse()
 		for index in Top_polygon_points.size():
-			var top_point = Top_polygon_points[index]
+			var top_point : Vector2 = Top_polygon_points[index]
 			if index == 0:
 				last_point = top_point
 				polygon.append(top_point+offset)
 				EndIndex = index
 				continue
 		
-			var dir = top_point.direction_to(last_point)
-			var angle_to_last_point = absf(atan2(dir.y,absf(dir.x)))
+			var dir : Vector2 = top_point.direction_to(last_point)
+			var angle_to_last_point : float = absf(atan2(dir.y,absf(dir.x)))
 
 			if angle_to_last_point > deg_to_rad(70):
 				points_height.insert(index,points_height[index-1])
@@ -163,23 +180,43 @@ class ShadowPolygon:
 			return
 
 		for p : float in range(0,EndIndex + 1):
-			var width = (shadow_max_distance - points_height[p])/shadow_max_distance*sizex
+			var width : float = (shadow_max_distance - points_height[p])/shadow_max_distance*sizex
+			# skip if width can trigger a division by zero
+			if is_zero_approx(width):
+				uv.append(Vector2(0.5,0.0))
+				continue
 			uv.append(Vector2((polygon[p].x-offset.x+width/2) / width,0.0))
 		for p : float in range(EndIndex+1,polygon.size()):
-			var width = (shadow_max_distance - points_height[(p-(EndIndex+1))])/shadow_max_distance*sizex
+			var width : float = (shadow_max_distance - points_height[(p-(EndIndex+1))])/shadow_max_distance*sizex
+			# skip if width can trigger a division by zero
+			if is_zero_approx(width):
+				uv.append(Vector2(0.5,0.0))
+				continue
 			uv.append(Vector2((polygon[p].x-offset.x+width/2) / width,1.0))
 
-func _mix(a,b,f):
-	return a*f + (1.0 - f)*b
+func _validate_property(property: Dictionary) -> void:
+	match property.name:
+		"preview_line_tickness":
+			if not show_preview_line:
+				property.usage = PROPERTY_USAGE_NO_EDITOR
+		"sample_points_radius":
+			if not show_sample_points:
+				property.usage = PROPERTY_USAGE_NO_EDITOR
+		"polygon_points_radius":
+			if not show_polygon_points:
+				property.usage = PROPERTY_USAGE_NO_EDITOR
 
 func _create_points() -> void:
-	if collision_mask == null or collision_mask == 0:
+	if collision_mask == 0:
+		return
+	# return to prevent an error if get_world_2D gives null
+	if not is_inside_tree():
 		return
 	
-	var state = get_world_2d().direct_space_state
-	var points_param = PhysicsPointQueryParameters2D.new()
+	var state : PhysicsDirectSpaceState2D = get_world_2d().direct_space_state
+	var points_param := PhysicsPointQueryParameters2D.new()
 	points_param.collision_mask = collision_mask
-	var rayparams = PhysicsRayQueryParameters2D.new()
+	var rayparams := PhysicsRayQueryParameters2D.new()
 
 	if get_parent() is CollisionObject2D:
 		rayparams = PhysicsRayQueryParameters2D.create(Vector2.ZERO,Vector2.ZERO,collision_mask,[get_parent().get_rid()])
@@ -192,21 +229,22 @@ func _create_points() -> void:
 	var from : Vector2
 	var to : Vector2
 	var result : Dictionary
-	var last_height_difference :float= 0.0
+	var last_height_difference : float = 0.0
 	var point := Vector2()
 	var signscale : Vector2 = scale.sign()
 	var height_difference : float
 	var last_point : Vector2
 	for x in resolution:
-		var x_position := (shadow_size.x)/float(resolution - 1)*x-(shadow_size.x)/2.0
+		var x_position : float = (shadow_size.x)/float(resolution - 1)*x-(shadow_size.x)/2.0
 	
 		from = Vector2(x_position + global_position.x,global_position.y)
 		to = global_position + Vector2(x_position,max_distance)
 
 		points_param.position = from
 		
-		var res = state.intersect_point(points_param)
+		var res : Array[Dictionary] = state.intersect_point(points_param)
 		if !res.is_empty():
+			
 			if x_position < 0:
 				_points.clear()
 			else:
@@ -222,7 +260,7 @@ func _create_points() -> void:
 		else:
 			height = max_distance - global_position.y
 
-		var distance_from_mask = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x)-x_pos_abs
+		var distance_from_mask : float = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x)-x_pos_abs
 		
 		if distance_from_mask >= (x_pos_abs-shadow_size.x*2/resolution):
 			if !result.is_empty():
@@ -243,7 +281,7 @@ func _create_points() -> void:
 				else:
 					height_difference = (last_point.y - candidate.y) + (candidate.y - point.y)
 					
-					var th = threshold / resolution
+					var th : float = threshold / resolution
 					if absf(height_difference-last_height_difference) >= th:
 						_points.append(candidate)
 					last_point = candidate
@@ -254,23 +292,29 @@ func _create_points() -> void:
 		if x >= resolution-1 and candidate != null:
 			_points.append(candidate)
 	if _points.size() > 1:
-		var sides = [_points[0],_points[-1]]
+		var sides : PackedVector2Array = [_points[0],_points[-1]]
 		for i in range(-1,1):
-			var p = _points[i]
-			var height = p.y
-			var abs_xpos = abs(p.x)
-			var distance_from_mask = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x/2.0)-abs_xpos
-			var point_before = _points[i+2*sign(i)+1]
-			var f = clampf(absf(distance_from_mask)/absf(p.x-point_before.x),0.,1.)
+			var p : Vector2 = _points[i]
+			var height : float = p.y
+			var abs_xpos : float = abs(p.x)
+			var distance_from_mask : float = (shadow_max_distance-height)/shadow_max_distance*(shadow_size.x/2.0)-abs_xpos
+			var point_before : Vector2 = _points[i+2*signi(i)+1]
+			var x_point_distance : float = absf(p.x-point_before.x)
+			# skip if two points overlap to avoid dividing by zero
+			if is_zero_approx(x_point_distance):
+				continue
+			var f : float = clampf(absf(distance_from_mask)/x_point_distance,0.,1.)
 			if distance_from_mask <= 0:
-				sides[i] = _mix(point_before,p*signscale,f)
+				# no need to multiply by signscale as it was already multiplied in line 272
+				# multiplying by signscale causes unnecessary flickers
+				sides[i] = p.lerp(point_before, f)
 		for i in range(-1,1):
 			_points[i] = sides[i]
 	points_created.emit()
 	
 func _triangulate_polygon(polygon : PackedVector2Array) -> PackedInt32Array:
-	var size = polygon.size()/2
-	var result = PackedInt32Array()
+	var size : float = polygon.size()/2
+	var result := PackedInt32Array()
 	for i in size-1:
 		result.append(i)
 		result.append(size*2-1-i)
@@ -282,14 +326,14 @@ func _triangulate_polygon(polygon : PackedVector2Array) -> PackedInt32Array:
 
 ## Returns the distance of every sample point.
 func get_points_distance() -> PackedFloat32Array:
-	var distance = PackedFloat32Array()
+	var distance := PackedFloat32Array()
 	for point in _points:
 		distance.append(point.y)
 	return distance
 
 func _resolve_remaining_points(shadow_polygon : ShadowPolygon, polygons : Array[PackedVector2Array],uvs : Array[PackedVector2Array]) -> void:
 	if !shadow_polygon.remaining_points.is_empty():
-		var new_shadow_polygon = ShadowPolygon.new(global_position)
+		var new_shadow_polygon := ShadowPolygon.new(global_position)
 		new_shadow_polygon.size_x = shadow_polygon.size_x
 		#new_shadow_polygon.StartIndex = shadow_polygon.EndIndex + shadow_polygon.StartIndex
 		new_shadow_polygon.shadow_max_distance = shadow_max_distance
@@ -305,8 +349,8 @@ func _resolve_remaining_points(shadow_polygon : ShadowPolygon, polygons : Array[
 			
 			polygons.append(new_shadow_polygon.polygon.duplicate())
 			uvs.append(new_shadow_polygon.uv.duplicate())
-	
-func _check_is_on_screen(polygons : Array[PackedVector2Array]):
+
+func _check_is_on_screen(polygons : Array[PackedVector2Array]) -> bool:
 	var is_on_screen := false
 	var viewport_rect = get_viewport_rect()
 	viewport_rect.position -= get_viewport_transform().origin/get_viewport_transform().get_scale()

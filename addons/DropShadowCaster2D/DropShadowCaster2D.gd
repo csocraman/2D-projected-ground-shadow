@@ -13,20 +13,21 @@ class_name DropShadowCaster2D
 var _old_points := PackedVector2Array()
 
 func _process(delta: float) -> void:
-	_points = []
-	if !is_visible_in_tree() or (Engine.is_editor_hint() and !show_in_editor):
-		_old_points = []
+	_points.clear()
+	if !is_visible_in_tree() or (Engine.is_editor_hint() and !show_in_editor) or texture == null:
+		_old_points.clear()
+		return
+	if not is_inside_tree():
 		return
 	_create_points()
 	if _old_points != _points:
 		queue_redraw()
-		
+
 func _draw() -> void:
-	
 	if (Engine.is_editor_hint() and !show_in_editor):
 		return
 	if Engine.is_editor_hint() and show_preview_line:
-		draw_line(Vector2(-shadow_size.x/2,0),Vector2(shadow_size.x/2,0),Color.CRIMSON,preview_line_tickness)
+		draw_line(Vector2(-shadow_size.x/2,0),Vector2(shadow_size.x/2,0),preview_line_color,preview_line_tickness)
 	if _points.size() < 2 or texture == null:
 		return
 	_old_points = _points.duplicate()
@@ -47,8 +48,8 @@ func _draw() -> void:
 	if !_check_is_on_screen(polygons):
 		return
 	for polygon_index in polygons.size():
-		var polygon = polygons[polygon_index]
-		var uv = uvs[polygon_index]
+		var polygon : PackedVector2Array = polygons[polygon_index]
+		var uv : PackedVector2Array = uvs[polygon_index]
 		for p in uv.size():
 			uv[p] -= Vector2.ONE/2
 			uv[p] = uv[p].rotated(shadow_rotation)
@@ -64,4 +65,4 @@ func _draw() -> void:
 				draw_circle(polygon[point_index],polygon_points_radius,Color(uv[point_index].x,uv[point_index].y,0))
 	if show_sample_points:
 		for p in _points:
-			draw_circle(p,sample_points_radius,Color.WHITE)
+			draw_circle(p,sample_points_radius,sample_points_color)
